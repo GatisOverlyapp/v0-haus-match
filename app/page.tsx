@@ -37,6 +37,7 @@ import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Label } from "@/components/ui/label"
 import { subscribeToEarlyAccess } from "./actions"
+import { getWebARModelForHouse } from "@/lib/webar-models" // Import the new function
 
 // Parse free-text query into structured search intent
 const parseSearchQuery = (query: string) => {
@@ -876,7 +877,7 @@ const enhancedSampleHouses = sampleHouses.map((house, index) => {
   }
 })
 
-// Function to generate random houses based on criteria
+// Generate random houses based on criteria
 const generateRandomHouses = (
   count: number,
   homeType: string,
@@ -1334,7 +1335,16 @@ const getRangeValues = (range: string, type: "size" | "budget") => {
   return { min: 0, max: Number.POSITIVE_INFINITY }
 }
 
+// Placeholder for WebAR models - replace with actual logic or data source
+const WEBAR_MODELS = [
+  { id: "demo-section", url: "https://create.overlyapp.com/webar/bb8b28bcff8abb7a398cba29d7bcdb0725d0b05e" },
+  // Add other models for specific houses, e.g.:
+  // { id: 1, url: "path/to/model1.glb" },
+  // { id: 2, url: "path/to/model2.glb" },
+]
+
 export default function LandingPage() {
+  // Changed from Home to LandingPage
   // State for the questionnaire
   const [currentStep, setCurrentStep] = useState(1)
   const [homeType, setHomeType] = useState("")
@@ -1997,8 +2007,12 @@ export default function LandingPage() {
     setSelectedImageAlt("")
   }
 
+  const demoWebARModel = getWebARModelForHouse("demo-section")
+
+  const arPreviewWebARModel = selectedHouse ? getWebARModelForHouse(selectedHouse.id) : WEBAR_MODELS[0].url // Use the URL property
+
   return (
-    <div className="flex min-h-screen flex-col">
+    <div className="w-full bg-white">
       {/* Sticky Navigation */}
       <header
         className={`w-full z-50 transition-all duration-300 ${
@@ -3008,110 +3022,6 @@ export default function LandingPage() {
               </div>
             </section>
 
-            {showSyntheticResults && (
-              <section id="results" className="w-full py-12 bg-white">
-                <div className="container px-4 md:px-6">
-                  <div className="space-y-8">
-                    <div className="bg-white rounded-lg shadow-md p-6">
-                      <div className="flex justify-between items-center mb-6">
-                        <div>
-                          <h3 className="text-xl font-semibold">Search Results</h3>
-                          <p className="text-gray-500 mt-1">Matches for: "{parsedSearchQuery?.originalQuery}"</p>
-                          <p className="text-sm text-gray-400 mt-1">{syntheticListings.length} results found</p>
-                        </div>
-                        <Button
-                          variant="outline"
-                          onClick={() => {
-                            setShowSyntheticResults(false)
-                            setFreeTextQuery("")
-                            setParsedSearchQuery(null)
-                            setCustomType("")
-                          }}
-                          className="text-sm"
-                        >
-                          Clear Search
-                        </Button>
-                      </div>
-
-                      {parsedSearchQuery && (
-                        <div className="flex flex-wrap gap-2 mb-6">
-                          {parsedSearchQuery.type && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {parsedSearchQuery.type}
-                            </Badge>
-                          )}
-                          {parsedSearchQuery.styles.map((style: string) => (
-                            <Badge
-                              key={style}
-                              className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800"
-                            >
-                              {style}
-                            </Badge>
-                          ))}
-                          {parsedSearchQuery.location && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {parsedSearchQuery.location}
-                            </Badge>
-                          )}
-                          {parsedSearchQuery.size && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {parsedSearchQuery.size}
-                            </Badge>
-                          )}
-                          {parsedSearchQuery.priceRange && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {parsedSearchQuery.priceRange}
-                            </Badge>
-                          )}
-                        </div>
-                      )}
-                    </div>
-
-                    <div className="space-y-8">
-                      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-                        {syntheticListings.map((house) => (
-                          <Card key={house.id} className="overflow-hidden border-0 shadow-md">
-                            <div
-                              className="relative h-48 w-full cursor-pointer"
-                              onClick={() => openImageModal(house.image, house.name)}
-                            >
-                              <img
-                                src={house.image || "/placeholder.svg"}
-                                alt={house.name}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-                            <div className="p-5">
-                              <div className="flex justify-between items-start mb-2">
-                                <h4 className="text-lg font-semibold">{house.name}</h4>
-                                <Badge className="bg-teal-100 text-teal-800 hover:bg-teal-100">{house.type}</Badge>
-                              </div>
-                              <div className="flex items-center gap-4 text-gray-600 mb-4">
-                                <div className="flex items-center">
-                                  <Ruler className="h-4 w-4 mr-1" />
-                                  <span>{house.size} m²</span>
-                                </div>
-                                <div className="flex items-center">
-                                  <DollarSign className="h-4 w-4 mr-1" />
-                                  <span>{formatPrice(house.price)}</span>
-                                </div>
-                              </div>
-                              <Button
-                                className="w-full bg-teal-600 hover:bg-teal-700"
-                                onClick={() => handleSeeMore(house)}
-                              >
-                                See more
-                              </Button>
-                            </div>
-                          </Card>
-                        ))}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </section>
-            )}
-
             {/* 1. Hero Section */}
             <section className="w-full py-12 md:py-24 lg:py-32 bg-white relative">
               <div
@@ -3253,7 +3163,7 @@ export default function LandingPage() {
                 <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-lg border bg-white shadow-md">
                   <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px]">
                     <iframe
-                      src="https://create.overlyapp.com/webar/bb8b28bcff8abb7a398cba29d7bcdb0725d0b05e?embed=true"
+                      src={`${demoWebARModel}?embed=true`}
                       className="absolute top-0 left-0 w-full h-full border-0"
                       title="3D Home Visualization Demo"
                       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -3523,7 +3433,7 @@ export default function LandingPage() {
             <div className="w-full h-[calc(100%-120px)] overflow-hidden rounded-lg border bg-white shadow-md">
               <div className="relative w-full h-full">
                 <iframe
-                  src="https://create.overlyapp.com/webar/bb8b28bcff8abb7a398cba29d7bcdb0725d0b05e?embed=true"
+                  src={`${arPreviewWebARModel}?embed=true`}
                   className="absolute top-0 left-0 w-full h-full border-0"
                   title={`AR Preview - ${selectedHouse.name}`}
                   allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; camera"
