@@ -1529,8 +1529,8 @@ export default function LandingPage() {
       // Generate 12 similar houses based on the selected house's styles, size, and price
       const generated = generateRandomHouses(
         12,
-        selectedHouse.type,
-        selectedHouse.styles,
+        selectedHouse.type, // Match the same house type
+        selectedHouse.styles, // Match the same styles
         homeSize,
         budget,
         existingIds,
@@ -2036,12 +2036,9 @@ export default function LandingPage() {
             >
               For Builders
             </button>
-            <button
-              onClick={() => scrollToSection("demo")}
-              className="text-gray-700 hover:text-teal-600 transition-colors"
-            >
-              See a Demo
-            </button>
+            <a href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors">
+              Blog
+            </a>
             <button
               onClick={() => scrollToSection("about")}
               className="text-gray-700 hover:text-teal-600 transition-colors"
@@ -2088,12 +2085,9 @@ export default function LandingPage() {
               >
                 For Builders
               </button>
-              <button
-                onClick={() => scrollToSection("demo")}
-                className="text-gray-700 hover:text-teal-600 transition-colors py-2"
-              >
-                See a Demo
-              </button>
+              <a href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors py-2">
+                Blog
+              </a>
               <button
                 onClick={() => scrollToSection("about")}
                 className="text-gray-700 hover:text-teal-600 transition-colors py-2"
