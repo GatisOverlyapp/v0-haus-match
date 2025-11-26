@@ -1781,22 +1781,13 @@ export default function LandingPage() {
     const q = (query || "").trim()
     if (!q) return
 
-    // Start text-analysis animation (2.5–3.0s, same feel as Pinterest)
     setIsAnalyzingText(true)
     setTextAnalysisProgress(0)
 
     const t0 = Date.now()
-    const steps = [
-      "Understanding your request…",
-      "Extracting style & type…",
-      "Applying budget, size and location…",
-      "Ranking matches from local builders…",
-      "Preparing results…",
-    ]
 
     const timer = setInterval(() => {
       setTextAnalysisProgress((p) => {
-        // Ease to 96% max during animation; final 100% when done
         const elapsed = Date.now() - t0
         const target = Math.min(96, Math.floor((elapsed / 2600) * 100))
         return p < target ? p + 2 : p
@@ -1807,26 +1798,16 @@ export default function LandingPage() {
     const parsed = parseSearchQuery(q)
     setParsedSearchQuery(parsed)
 
-    if (parsed.type) setHomeType(parsed.type)
-    if (parsed.styles.length > 0) setInteriorStyles(parsed.styles.slice(0, 3))
-    if (parsed.size) setHomeSize(parsed.size)
-    if (parsed.priceRange) setBudget(parsed.priceRange)
-
-    const synthetic = generateSyntheticListings(parsed, 6)
+    const synthetic = generateSyntheticListings(parsed, 12)
     setSyntheticListings(synthetic)
 
-    // Mark step 1 complete so the CTA isn't disabled anymore
-    setStepsCompleted((prev) => ({ ...prev, 1: true }))
+    setShowResults(true)
 
     // Finish animation and reveal results
     setTimeout(() => {
       clearInterval(timer)
       setTextAnalysisProgress(100)
       setIsAnalyzingText(false)
-
-      setShowSyntheticResults(true)
-      setShowResults(false)
-      setShowHouseDetail(false)
 
       // Smooth scroll to results with proper timing
       setTimeout(() => {
@@ -1835,16 +1816,11 @@ export default function LandingPage() {
           resultsElement.scrollIntoView({
             behavior: "smooth",
             block: "start",
-            inline: "nearest",
-          })
-        } else {
-          // Fallback: scroll to a reasonable position
-          window.scrollTo({
-            top: window.innerHeight * 0.8,
-            behavior: "smooth",
           })
         }
-      }, 200)
+      }, 300)
+
+      setTextAnalysisProgress(0) // Reset progress for next search
     }, 2600)
   }
 
@@ -2009,7 +1985,7 @@ export default function LandingPage() {
 
   const demoWebARModel = getWebARModelForHouse("demo-section")
 
-  const arPreviewWebARModel = selectedHouse ? getWebARModelForHouse(selectedHouse.id) : WEBAR_MODELS[0].url // Use the URL property
+  const arPreviewWebARModel = selectedHouse ? getWebARModelForHouse(String(selectedHouse.id)) : WEBAR_MODELS[0]
 
   return (
     <div className="w-full bg-white">

@@ -12,8 +12,9 @@ export function getRandomWebARModel(): string {
 }
 
 // Get a consistent WebAR model for a specific house ID
-export function getWebARModelForHouse(houseId: string): string {
-  const hash = houseId.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
+export function getWebARModelForHouse(houseId: string | number): string {
+  const idString = String(houseId)
+  const hash = idString.split("").reduce((acc, char) => acc + char.charCodeAt(0), 0)
   const index = hash % WEBAR_MODELS.length
   return WEBAR_MODELS[index]
 }
