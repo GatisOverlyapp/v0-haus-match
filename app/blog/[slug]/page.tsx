@@ -45,6 +45,10 @@ export async function generateStaticParams() {
   }))
 }
 
+export const revalidate = 3600 // Revalidate every hour
+
+export const dynamicParams = false // Only allow pre-generated routes
+
 export default function BlogPostPage({ params }: BlogPostPageProps) {
   return <BlogPostClientPage params={params} />
 }
