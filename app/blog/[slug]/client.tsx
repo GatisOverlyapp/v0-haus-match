@@ -8,15 +8,13 @@ import { Navigation } from "@/components/navigation"
 import { notFound } from "next/navigation"
 import { useState } from "react"
 
-interface BlogPostPageProps {
-  params: {
-    slug: string
-  }
+interface BlogPostClientPageProps {
+  slug: string
 }
 
-export default function BlogPostClientPage({ params }: BlogPostPageProps) {
+export default function BlogPostClientPage({ slug }: BlogPostClientPageProps) {
   const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
-  const post = blogPosts.find((p) => p.slug === params.slug)
+  const post = blogPosts.find((p) => p.slug === slug)
 
   if (!post) {
     notFound()

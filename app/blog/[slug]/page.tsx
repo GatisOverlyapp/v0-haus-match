@@ -3,13 +3,12 @@ import { blogPosts } from "../data"
 import BlogPostClientPage from "./client"
 
 interface BlogPostPageProps {
-  params: {
-    slug: string
-  }
+  params: Promise<{ slug: string }>
 }
 
 export async function generateMetadata({ params }: BlogPostPageProps): Promise<Metadata> {
-  const post = blogPosts.find((p) => p.slug === params.slug)
+  const { slug } = await params
+  const post = blogPosts.find((p) => p.slug === slug)
 
   if (!post) {
     return {
@@ -45,10 +44,11 @@ export async function generateStaticParams() {
   }))
 }
 
-export const revalidate = 3600 // Revalidate every hour
+export const revalidate = 3600
 
 export const dynamicParams = true
 
-export default function BlogPostPage({ params }: BlogPostPageProps) {
-  return <BlogPostClientPage params={params} />
+export default async function BlogPostPage({ params }: BlogPostPageProps) {
+  const { slug } = await params
+  return <BlogPostClientPage slug={slug} />
 }
