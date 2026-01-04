@@ -1778,8 +1778,7 @@ export default function LandingPage() {
   }
 
   const handleFreeTextSearch = (query: string) => {
-    const q = (query || "").trim()
-    if (!q) return
+    if (!query.trim()) return
 
     setIsAnalyzingText(true)
     setTextAnalysisProgress(0)
@@ -1795,31 +1794,25 @@ export default function LandingPage() {
     }, 180)
 
     // Do the actual parsing & listing generation while the bar animates
-    const parsed = parseSearchQuery(q)
+    const parsed = parseSearchQuery(query)
     setParsedSearchQuery(parsed)
 
     const synthetic = generateSyntheticListings(parsed, 12)
     setSyntheticListings(synthetic)
 
-    setShowResults(true)
+    setShowResults(true) // Ensure results section is shown
+    setShowSyntheticResults(true) // Also show synthetic results explicitly
 
-    // Finish animation and reveal results
+    // Scroll to results
     setTimeout(() => {
+      const resultsSection = document.getElementById("search-results")
+      if (resultsSection) {
+        resultsSection.scrollIntoView({ behavior: "smooth" })
+      }
+      // Finish animation and reveal results
       clearInterval(timer)
       setTextAnalysisProgress(100)
       setIsAnalyzingText(false)
-
-      // Smooth scroll to results with proper timing
-      setTimeout(() => {
-        const resultsElement = document.getElementById("results")
-        if (resultsElement) {
-          resultsElement.scrollIntoView({
-            behavior: "smooth",
-            block: "start",
-          })
-        }
-      }, 300)
-
       setTextAnalysisProgress(0) // Reset progress for next search
     }, 2600)
   }
