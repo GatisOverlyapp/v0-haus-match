@@ -2015,6 +2015,9 @@ export default function LandingPage() {
             >
               Find a House
             </button>
+            <a href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors">
+              Manufacturers
+            </a>
             <button
               onClick={() => scrollToSection("how-it-works")}
               className="text-gray-700 hover:text-teal-600 transition-colors"
@@ -2060,28 +2063,31 @@ export default function LandingPage() {
             <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
               <button
                 onClick={() => scrollToSection("find-home")}
-                className="text-gray-700 hover:text-teal-600 transition-colors py-2"
+                className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
               >
                 Find a House
               </button>
+              <a href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
+                Manufacturers
+              </a>
               <button
                 onClick={() => scrollToSection("how-it-works")}
-                className="text-gray-700 hover:text-teal-600 transition-colors py-2"
+                className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
               >
                 How It Works
               </button>
               <button
                 onClick={() => scrollToSection("for-builders")}
-                className="text-gray-700 hover:text-teal-600 transition-colors py-2"
+                className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
               >
                 For Builders
               </button>
-              <a href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors py-2">
+              <a href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
                 Blog
               </a>
               <button
                 onClick={() => scrollToSection("about")}
-                className="text-gray-700 hover:text-teal-600 transition-colors py-2"
+                className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
               >
                 About
               </button>

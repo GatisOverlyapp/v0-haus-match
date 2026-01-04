@@ -47,6 +47,9 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
           >
             Find a House
           </button>
+          <Link href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors">
+            Manufacturers
+          </Link>
           <button
             onClick={() => scrollToSection("how-it-works")}
             className="text-gray-700 hover:text-teal-600 transition-colors"
@@ -102,6 +105,9 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
             >
               Find a House
             </button>
+            <Link href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
+              Manufacturers
+            </Link>
             <button
               onClick={() => scrollToSection("how-it-works")}
               className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
@@ -114,7 +120,7 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
             >
               For Builders
             </button>
-            <Link href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors py-2">
+            <Link href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
               Blog
             </Link>
             <button

@@ -1,72 +1,15 @@
 "use client"
 
+import Link from "next/link"
 import { useState } from "react"
 import { Navigation } from "@/components/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MapPin, Building2 } from "lucide-react"
-
-interface Manufacturer {
-  id: string
-  name: string
-  location: string
-  description: string
-  logo?: string
-}
-
-// Mock data: 6 Latvian prefab home manufacturers
-const manufacturers: Manufacturer[] = [
-  {
-    id: "1",
-    name: "Nordic Prefab Latvia",
-    location: "Riga, Latvia",
-    description: "Leading manufacturer of Scandinavian-inspired prefab homes with sustainable materials and energy-efficient designs.",
-    logo: "/placeholder-logo.svg",
-  },
-  {
-    id: "2",
-    name: "Baltic Modular Homes",
-    location: "Liepāja, Latvia",
-    description: "Specializing in modern modular homes and tiny houses, combining Baltic design aesthetics with contemporary living.",
-    logo: "/placeholder-logo.svg",
-  },
-  {
-    id: "3",
-    name: "EcoHaus Latvia",
-    location: "Jūrmala, Latvia",
-    description: "Eco-friendly prefab homes focusing on passive house standards and renewable energy integration.",
-    logo: "/placeholder-logo.svg",
-  },
-  {
-    id: "4",
-    name: "Latvian Timber Homes",
-    location: "Valmiera, Latvia",
-    description: "Traditional and modern timber-frame prefab homes using locally sourced Latvian wood.",
-    logo: "/placeholder-logo.svg",
-  },
-  {
-    id: "5",
-    name: "Scandinavian Prefab Co.",
-    location: "Cēsis, Latvia",
-    description: "Premium prefab homes inspired by Scandinavian design, offering customizable floor plans and finishes.",
-    logo: "/placeholder-logo.svg",
-  },
-  {
-    id: "6",
-    name: "GreenBox Homes Latvia",
-    location: "Daugavpils, Latvia",
-    description: "Innovative container-based and modular prefab homes with modern amenities and sustainable construction.",
-    logo: "/placeholder-logo.svg",
-  },
-]
+import { manufacturers } from "./data"
 
 export default function ManufacturersPage() {
   const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
-
-  const handleViewProfile = (manufacturerId: string) => {
-    // TODO: Navigate to manufacturer profile page
-    console.log("View profile for manufacturer:", manufacturerId)
-  }
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -117,12 +60,11 @@ export default function ManufacturersPage() {
                 <p className="text-gray-600 text-sm mb-6 leading-relaxed">{manufacturer.description}</p>
 
                 {/* View Profile Button */}
-                <Button
-                  className="w-full bg-teal-600 hover:bg-teal-700"
-                  onClick={() => handleViewProfile(manufacturer.id)}
-                >
-                  View Profile
-                </Button>
+                <Link href={`/manufacturers/${manufacturer.slug}`} className="w-full">
+                  <Button className="w-full bg-teal-600 hover:bg-teal-700">
+                    View Profile
+                  </Button>
+                </Link>
               </div>
             </Card>
           ))}
