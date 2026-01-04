@@ -38,6 +38,7 @@ import { Progress } from "@/components/ui/progress"
 import { Label } from "@/components/ui/label"
 import { subscribeToEarlyAccess } from "./actions"
 import { getWebARModelForHouse } from "@/lib/webar-models" // Import the new function
+import { HouseCard } from "@/components/house-card"
 
 // Parse free-text query into structured search intent
 const parseSearchQuery = (query: string) => {
@@ -2944,38 +2945,13 @@ export default function LandingPage() {
                         <div className="space-y-8">
                           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
                             {visibleFilteredHouses.map((house) => (
-                              <Card key={house.id} className="overflow-hidden border-0 shadow-md">
-                                <div className="relative h-48 w-full">
-                                  <img
-                                    src={house.image || "/placeholder.svg"}
-                                    alt={house.name}
-                                    className="h-full w-full object-cover cursor-pointer"
-                                    onClick={() => openImageModal(house.image, house.name)}
-                                  />
-                                </div>
-                                <div className="p-5">
-                                  <div className="flex justify-between items-start mb-2">
-                                    <h4 className="text-lg font-semibold">{house.name}</h4>
-                                    <Badge className="bg-teal-100 text-teal-800 hover:bg-teal-100">{house.type}</Badge>
-                                  </div>
-                                  <div className="flex items-center gap-4 text-gray-600 mb-4">
-                                    <div className="flex items-center">
-                                      <Ruler className="h-4 w-4 mr-1" />
-                                      <span>{house.size} m²</span>
-                                    </div>
-                                    <div className="flex items-center">
-                                      <DollarSign className="h-4 w-4 mr-1" />
-                                      <span>{formatPrice(house.price)}</span>
-                                    </div>
-                                  </div>
-                                  <Button
-                                    className="w-full bg-teal-600 hover:bg-teal-700"
-                                    onClick={() => handleSeeMore(house)}
-                                  >
-                                    See more
-                                  </Button>
-                                </div>
-                              </Card>
+                              <HouseCard
+                                key={house.id}
+                                house={house}
+                                onImageClick={openImageModal}
+                                onSeeMore={handleSeeMore}
+                                formatPrice={formatPrice}
+                              />
                             ))}
                           </div>
 
