@@ -2,28 +2,22 @@
 
 import Link from "next/link"
 import { useState } from "react"
-import { notFound } from "next/navigation"
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { ArrowLeft, Ruler, Bed, Bath, Check, Mail, ChevronLeft, ChevronRight } from "lucide-react"
-import { houseModels, manufacturers } from "@/app/manufacturers/data"
+import type { HouseModel } from "@/app/manufacturers/data"
+import type { Manufacturer } from "@/app/manufacturers/data"
 
 interface ModelDetailClientPageProps {
-  slug: string
+  model: HouseModel
+  manufacturer: Manufacturer | null
 }
 
-export default function ModelDetailClientPage({ slug }: ModelDetailClientPageProps) {
+export default function ModelDetailClientPage({ model, manufacturer }: ModelDetailClientPageProps) {
   const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
   const [activeImageIndex, setActiveImageIndex] = useState(0)
 
-  const model = houseModels.find((m) => m.slug === slug)
-
-  if (!model) {
-    notFound()
-  }
-
-  const manufacturer = manufacturers.find((m) => m.id === model.manufacturerId)
   const manufacturerSlug = manufacturer?.slug || ""
   const manufacturerName = manufacturer?.name || "Unknown Manufacturer"
 

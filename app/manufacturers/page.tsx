@@ -1,20 +1,24 @@
-"use client"
-
 import Link from "next/link"
-import { useState } from "react"
 import { Navigation } from "@/components/navigation"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MapPin, Building2 } from "lucide-react"
-import { manufacturers } from "./data"
+import { getManufacturers } from "@/lib/db/manufacturers"
+import { notFound } from "next/navigation"
 
-export default function ManufacturersPage() {
-  const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
+export default async function ManufacturersPage() {
+  let manufacturers
+  try {
+    manufacturers = await getManufacturers()
+  } catch (error) {
+    console.error("Error loading manufacturers:", error)
+    notFound()
+  }
 
   return (
     <div className="min-h-screen bg-gray-50">
       {/* Navigation */}
-      <Navigation openSubscribeModal={() => setSubscribeModalOpen(true)} />
+      <Navigation openSubscribeModal={undefined} />
 
       {/* Header */}
       <header className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-12 md:py-16">

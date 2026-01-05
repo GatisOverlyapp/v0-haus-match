@@ -11,7 +11,6 @@ generator client {
 
 datasource db {
   provider = "sqlite"
-  url      = env("DATABASE_URL")
 }
 
 model Waitlist {
@@ -35,13 +34,55 @@ model Lead {
   createdAt       DateTime @default(now())
 }
 
-model Contact {
-  id             String   @id @default(cuid())
+model Manufacturer {
+  id          String   @id @default(cuid())
+  name        String
+  slug        String   @unique
+  location    String
+  lat         Float
+  lng         Float
+  description String
+  logo        String?
+  phone       String?
+  email       String?
+  website     String?
+  published   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  models      Model[]
+  contacts    Contact[]
+}
+
+model Model {
+  id             String       @id @default(cuid())
+  name           String
+  slug           String       @unique
   manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
+  size_sqm       Int
+  bedrooms       Int
+  bathrooms      Int
+  price_range    String
+  category       String
+  style_tags     String // JSON array stored as string
+  features       String // JSON array stored as string
+  images         String // JSON array stored as string
+  description    String
+  published      Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+  contacts       Contact[]
+}
+
+model Contact {
+  id             String       @id @default(cuid())
+  manufacturerId String
+  manufacturer   Manufacturer @relation(fields: [manufacturerId], references: [id], onDelete: Cascade)
   modelId        String?
+  model          Model?       @relation(fields: [modelId], references: [id], onDelete: SetNull)
   name           String
   email          String
   phone          String?
   message        String
-  createdAt      DateTime @default(now())
+  createdAt      DateTime     @default(now())
 }

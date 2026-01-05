@@ -1,6 +1,8 @@
 import type { Metadata } from "next"
-import { houseModels } from "@/app/manufacturers/data"
+import { getModelBySlug, getModels } from "@/lib/db/models"
+import { getManufacturerById } from "@/lib/db/manufacturers"
 import ModelDetailClientPage from "./client"
+import { notFound } from "next/navigation"
 
 interface ModelPageProps {
   params: Promise<{ slug: string }>
@@ -8,7 +10,13 @@ interface ModelPageProps {
 
 export async function generateMetadata({ params }: ModelPageProps): Promise<Metadata> {
   const { slug } = await params
-  const model = houseModels.find((m) => m.slug === slug)
+  let model
+
+  try {
+    model = await getModelBySlug(slug)
+  } catch (error) {
+    console.error("Error loading model for metadata:", error)
+  }
 
   if (!model) {
     return {
@@ -39,9 +47,15 @@ export async function generateMetadata({ params }: ModelPageProps): Promise<Meta
 }
 
 export async function generateStaticParams() {
-  return houseModels.map((model) => ({
-    slug: model.slug,
-  }))
+  try {
+    const models = await getModels()
+    return models.map((model) => ({
+      slug: model.slug,
+    }))
+  } catch (error) {
+    console.error("Error generating static params:", error)
+    return []
+  }
 }
 
 export const revalidate = 3600
@@ -50,5 +64,20 @@ export const dynamicParams = true
 
 export default async function ModelPage({ params }: ModelPageProps) {
   const { slug } = await params
-  return <ModelDetailClientPage slug={slug} />
+  let model
+  let manufacturer
+
+  try {
+    model = await getModelBySlug(slug)
+    if (!model) {
+      notFound()
+    }
+
+    manufacturer = await getManufacturerById(model.manufacturerId)
+  } catch (error) {
+    console.error("Error loading model:", error)
+    notFound()
+  }
+
+  return <ModelDetailClientPage model={model} manufacturer={manufacturer} />
 }

@@ -1,8 +1,8 @@
 import type { Metadata } from "next"
 
 export const metadata: Metadata = {
-  title: "Find Manufacturers | Interactive Map",
-  description: "Explore prefab home manufacturers across Latvia on our interactive map",
+  title: "Manufacturers Map | HausMatch",
+  description: "Explore prefab home manufacturers across Latvia on our interactive map. Find builders near you.",
 }
 
 export default function MapLayout({

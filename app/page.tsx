@@ -40,10 +40,8 @@ import { subscribeToEarlyAccess } from "./actions"
 import { getWebARModelForHouse } from "@/lib/webar-models" // Import the new function
 import { HouseCard } from "@/components/house-card"
 import Link from "next/link"
-import { categories, getModelsByCategory } from "@/app/categories/data"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { GoogleMap } from "@/components/google-map"
-import { manufacturers } from "@/app/manufacturers/data"
 import { Navigation } from "@/components/navigation"
 import {
   Dialog,
@@ -333,7 +331,7 @@ const generateSyntheticListings = (parsedQuery: any, count = 6) => {
       bedrooms: size < 30 ? 1 : size < 70 ? 2 : 3,
       bathrooms: size < 50 ? 1 : 2,
       materials: ["Wood", "Glass", "Steel"],
-      manufacturer: manufacturers[Math.floor(Math.random() * manufacturers.length)],
+      manufacturer: manufacturers && manufacturers.length > 0 ? manufacturers[Math.floor(Math.random() * manufacturers.length)] : null,
       yearBuilt: 2023,
       energyRating: "A",
       styles: styles.length > 0 ? styles : ["Modern"],
@@ -1234,7 +1232,7 @@ const generateRandomHouses = (
       bedrooms: size < 30 ? 1 : size < 70 ? Math.floor(Math.random() * 2) + 1 : Math.floor(Math.random() * 3) + 1,
       bathrooms: size < 50 ? 1 : Math.floor(Math.random() * 2) + 1,
       materials: houseMaterials,
-      manufacturer: manufacturers[Math.floor(Math.random() * manufacturers.length)],
+      manufacturer: manufacturers && manufacturers.length > 0 ? manufacturers[Math.floor(Math.random() * manufacturers.length)] : null,
       yearBuilt: Math.floor(Math.random() * 3) + 2021,
       energyRating: ["A+", "A", "B+", "B"][Math.floor(Math.random() * 4)],
       styles: houseStyles,
@@ -1361,6 +1359,67 @@ export default function LandingPage() {
   // Changed from Home to LandingPage
   // State for the questionnaire
   const [currentStep, setCurrentStep] = useState(1)
+  const [manufacturers, setManufacturers] = useState<any[]>([])
+  const [categories, setCategories] = useState<any[]>([])
+  const [categoryModelCounts, setCategoryModelCounts] = useState<Record<string, number>>({})
+
+  // Fetch manufacturers, categories, and models on mount
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        const [manufacturersResponse, categoriesResponse, modelsResponse] = await Promise.all([
+          fetch("/api/homepage/manufacturers"),
+          fetch("/api/homepage/categories"),
+          fetch("/api/homepage/models"),
+        ])
+
+        if (!manufacturersResponse.ok || !categoriesResponse.ok || !modelsResponse.ok) {
+          throw new Error("Failed to fetch data")
+        }
+
+        const [manufacturersData, categoriesData, modelsData] = await Promise.all([
+          manufacturersResponse.json(),
+          categoriesResponse.json(),
+          modelsResponse.json(),
+        ])
+
+        // Validate and set manufacturers
+        if (Array.isArray(manufacturersData)) {
+          setManufacturers(
+            manufacturersData.map((m: any) => ({
+              id: m.id,
+              name: m.name,
+              slug: m.slug,
+              location: m.location,
+              description: m.description,
+              logo: m.logo || undefined,
+              lat: m.lat,
+              lng: m.lng,
+            }))
+          )
+        }
+
+        // Validate and set categories
+        if (Array.isArray(categoriesData)) {
+          setCategories(categoriesData)
+
+          // Calculate model counts per category
+          const counts: Record<string, number> = {}
+          if (Array.isArray(modelsData)) {
+            categoriesData.forEach((category: any) => {
+              const categoryName = category.name
+              const count = modelsData.filter((model: any) => model.category === categoryName).length
+              counts[category.slug] = count
+            })
+          }
+          setCategoryModelCounts(counts)
+        }
+      } catch (error) {
+        console.error("Error fetching homepage data:", error)
+      }
+    }
+    fetchData()
+  }, [])
   const [homeType, setHomeType] = useState("")
   const [homeSize, setHomeSize] = useState("")
   const [interiorStyles, setInteriorStyles] = useState<string[]>([])
@@ -2928,32 +2987,38 @@ export default function LandingPage() {
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 max-w-6xl mx-auto">
-                  {categories.slice(0, 6).map((category) => {
-                    const modelCount = getModelsByCategory(category.slug).length
-                    return (
-                      <Link key={category.slug} href={`/categories/${category.slug}`} className="block">
-                        <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full">
-                          {/* Category Image */}
-                          <div className="relative h-48 w-full">
-                            <img
-                              src={category.heroImage || "/placeholder.svg"}
-                              alt={category.name}
-                              className="h-full w-full object-cover"
-                            />
-                          </div>
-
-                          {/* Content */}
-                          <div className="p-5">
-                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.name}</h3>
-                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{category.description}</p>
-                            <div className="text-sm text-teal-600 font-medium">
-                              {modelCount} {modelCount === 1 ? "model" : "models"}
+                  {categories && categories.length > 0 ? (
+                    categories.slice(0, 6).map((category) => {
+                      const modelCount = categoryModelCounts[category.slug] || 0
+                      return (
+                        <Link key={category.slug} href={`/categories/${category.slug}`} className="block">
+                          <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full">
+                            {/* Category Image */}
+                            <div className="relative h-48 w-full">
+                              <img
+                                src={category.heroImage || "/placeholder.svg"}
+                                alt={category.name}
+                                className="h-full w-full object-cover"
+                              />
                             </div>
-                          </div>
-                        </Card>
-                      </Link>
-                    )
-                  })}
+
+                            {/* Content */}
+                            <div className="p-5">
+                              <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.name}</h3>
+                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{category.description}</p>
+                              <div className="text-sm text-teal-600 font-medium">
+                                {modelCount} {modelCount === 1 ? "model" : "models"}
+                              </div>
+                            </div>
+                          </Card>
+                        </Link>
+                      )
+                    })
+                  ) : (
+                    <div className="col-span-full text-center py-8 text-gray-500">
+                      Loading categories...
+                    </div>
+                  )}
                 </div>
 
                 <div className="text-center">

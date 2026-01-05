@@ -1,5 +1,5 @@
 import "dotenv/config"
-import { PrismaClient } from "@prisma/client"
+import { PrismaClient } from "../lib/generated/prisma/client"
 import bcrypt from "bcryptjs"
 
 // Ensure DATABASE_URL is set

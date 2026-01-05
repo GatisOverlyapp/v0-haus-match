@@ -7,13 +7,15 @@ import {
   LayoutDashboard, 
   Users, 
   Building2, 
+  Factory,
+  Home,
   FileText, 
   LogOut,
-  Home
+  Boxes
 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { UserRole } from "@prisma/client"
+import { UserRole } from "@/lib/generated/prisma/client"
 
 interface AdminSidebarProps {
   user: {
@@ -38,6 +40,16 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
       href: "/admin/users",
       icon: Users,
       adminOnly: true,
+    },
+    {
+      title: "Manufacturers",
+      href: "/admin/manufacturers",
+      icon: Factory,
+    },
+    {
+      title: "Models",
+      href: "/admin/models",
+      icon: Boxes,
     },
     {
       title: "House Builders",

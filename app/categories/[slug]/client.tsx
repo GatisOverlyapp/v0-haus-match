@@ -16,8 +16,8 @@ import {
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Filter, X, ArrowLeft, MapPin } from "lucide-react"
-import { getCategoryBySlug, getModelsByCategory } from "../data"
-import { houseModels } from "@/app/manufacturers/data"
+import type { CategoryData } from "../data"
+import type { HouseModel } from "@/app/manufacturers/data"
 
 type SortOption = "price-low" | "price-high" | "size-low" | "size-high" | "newest"
 
@@ -31,23 +31,15 @@ const extractPrice = (priceRange: string): number => {
 }
 
 interface CategoryDetailClientPageProps {
-  slug: string
+  category: CategoryData
+  models: HouseModel[]
 }
 
-export default function CategoryDetailClientPage({ slug }: CategoryDetailClientPageProps) {
+export default function CategoryDetailClientPage({ category, models: categoryModels }: CategoryDetailClientPageProps) {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false)
-
-  const category = getCategoryBySlug(slug)
-
-  if (!category) {
-    notFound()
-  }
-
-  // Get all models for this category
-  const categoryModels = getModelsByCategory(slug)
 
   // Get filter values from URL
   const priceRange = searchParams.get("price") || "all-prices"

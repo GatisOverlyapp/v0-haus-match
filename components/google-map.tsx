@@ -15,6 +15,7 @@ interface GoogleMapProps {
   onMarkerClick?: (manufacturerId: string) => void
   onResetFilters?: () => void
   zoom?: number
+  center?: { lat: number; lng: number } | null
 }
 
 // Helper function to get coordinates for Latvian cities
@@ -35,7 +36,7 @@ const getCoordinatesForLocation = (location: string): { lat: number; lng: number
 const DEFAULT_CENTER = { lat: 56.8796, lng: 24.6032 }
 const DEFAULT_ZOOM = 7
 
-export function GoogleMap({ manufacturers, filteredManufacturers, height = "500px", selectedManufacturerId, onMarkerClick, onResetFilters, zoom }: GoogleMapProps) {
+export function GoogleMap({ manufacturers, filteredManufacturers, height = "500px", selectedManufacturerId, onMarkerClick, onResetFilters, zoom, center }: GoogleMapProps) {
   const [selectedMarker, setSelectedMarker] = useState<string | null>(selectedManufacturerId || null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -58,8 +59,12 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
       .filter((m): m is Manufacturer & { lat: number; lng: number } => m !== null)
   }, [manufacturersToDisplay])
 
-  // Calculate map bounds to fit all visible markers
-  const mapCenter = useMemo(() => {
+  // Calculate map bounds to fit all visible markers (only if center prop is not provided)
+  const calculatedCenter = useMemo(() => {
+    if (center) {
+      return center
+    }
+
     if (manufacturersWithCoords.length === 0) {
       return DEFAULT_CENTER
     }
@@ -73,7 +78,7 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
     const avgLng = manufacturersWithCoords.reduce((sum, m) => sum + m.lng, 0) / manufacturersWithCoords.length
 
     return { lat: avgLat, lng: avgLng }
-  }, [manufacturersWithCoords])
+  }, [manufacturersWithCoords, center])
 
   // Calculate appropriate zoom level based on marker spread
   const calculatedZoom = useMemo(() => {
@@ -176,9 +181,9 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
           center={
             selectedManufacturer
               ? { lat: selectedManufacturer.lat, lng: selectedManufacturer.lng }
-              : mapCenter
+              : calculatedCenter
           }
-          zoom={selectedManufacturer ? (zoom || 12) : calculatedZoom}
+          zoom={selectedManufacturer ? (zoom || 12) : (zoom || calculatedZoom)}
           mapId="haus-match-map"
           className="w-full h-full"
           gestureHandling="greedy"
