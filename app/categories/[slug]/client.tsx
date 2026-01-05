@@ -15,7 +15,7 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Filter, X, ArrowLeft } from "lucide-react"
+import { Filter, X, ArrowLeft, MapPin } from "lucide-react"
 import { getCategoryBySlug, getModelsByCategory } from "../data"
 import { houseModels } from "@/app/manufacturers/data"
 
@@ -201,8 +201,18 @@ export default function CategoryDetailClientPage({ slug }: CategoryDetailClientP
           </Link>
 
           <div className="max-w-4xl">
-            <h1 className="text-4xl md:text-5xl font-bold mb-4">{category.name}</h1>
-            <p className="text-lg text-teal-100 leading-relaxed">{category.description}</p>
+            <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+              <div>
+                <h1 className="text-4xl md:text-5xl font-bold mb-4">{category.name}</h1>
+                <p className="text-lg text-teal-100 leading-relaxed">{category.description}</p>
+              </div>
+              <Link href="/map">
+                <Button variant="outline" className="bg-white/10 border-white/30 text-white hover:bg-white/20">
+                  <MapPin className="w-4 h-4 mr-2" />
+                  View Manufacturers on Map
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>

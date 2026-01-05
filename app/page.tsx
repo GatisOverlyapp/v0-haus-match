@@ -42,6 +42,8 @@ import { HouseCard } from "@/components/house-card"
 import Link from "next/link"
 import { categories, getModelsByCategory } from "@/app/categories/data"
 import { WaitlistForm } from "@/components/waitlist-form"
+import { GoogleMap } from "@/components/google-map"
+import { manufacturers } from "@/app/manufacturers/data"
 import {
   Dialog,
   DialogContent,
@@ -3067,6 +3069,39 @@ export default function LandingPage() {
                       View All Categories
                     </Button>
                   </Link>
+                </div>
+              </div>
+            </section>
+
+            {/* Explore Manufacturers Map Section */}
+            <section className="w-full py-16 md:py-24 bg-gray-50">
+              <div className="container px-4 md:px-6">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl mb-4">
+                    Explore Manufacturers on Map
+                  </h2>
+                  <p className="text-gray-600 max-w-2xl mx-auto text-lg">
+                    Find prefab home manufacturers across Latvia. Click markers to view profiles.
+                  </p>
+                </div>
+
+                <div className="max-w-6xl mx-auto">
+                  <div className="hidden md:block">
+                    <GoogleMap manufacturers={manufacturers} height="600px" />
+                  </div>
+                  <div className="md:hidden">
+                    <GoogleMap manufacturers={manufacturers} height="400px" />
+                  </div>
+                  
+                  {/* Explore Full Map Button */}
+                  <div className="text-center mt-8">
+                    <Link href="/map">
+                      <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg">
+                        <MapPin className="w-5 h-5 mr-2" />
+                        Explore Full Map
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
             </section>

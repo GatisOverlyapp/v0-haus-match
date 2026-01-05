@@ -59,12 +59,19 @@ export default function ManufacturersPage() {
                 {/* Description */}
                 <p className="text-gray-600 text-sm mb-6 leading-relaxed">{manufacturer.description}</p>
 
-                {/* View Profile Button */}
-                <Link href={`/manufacturers/${manufacturer.slug}`} className="w-full">
-                  <Button className="w-full bg-teal-600 hover:bg-teal-700">
-                    View Profile
-                  </Button>
-                </Link>
+                {/* Action Buttons */}
+                <div className="flex gap-2">
+                  <Link href={`/manufacturers/${manufacturer.slug}`} className="flex-1">
+                    <Button className="w-full bg-teal-600 hover:bg-teal-700">
+                      View Profile
+                    </Button>
+                  </Link>
+                  <Link href={`/map?manufacturer=${manufacturer.slug}`}>
+                    <Button variant="outline" size="icon" className="border-teal-600 text-teal-600 hover:bg-teal-50" title="View on Map">
+                      <MapPin className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </Card>
           ))}

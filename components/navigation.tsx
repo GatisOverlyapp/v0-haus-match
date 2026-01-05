@@ -58,6 +58,9 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
           <Link href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors">
             Manufacturers
           </Link>
+          <Link href="/models" className="text-gray-700 hover:text-teal-600 transition-colors">
+            Models
+          </Link>
           <DropdownMenu>
             <DropdownMenuTrigger className="text-gray-700 hover:text-teal-600 transition-colors flex items-center gap-1 outline-none">
               Categories
@@ -73,27 +76,12 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
               ))}
             </DropdownMenuContent>
           </DropdownMenu>
-          <button
-            onClick={() => scrollToSection("how-it-works")}
-            className="text-gray-700 hover:text-teal-600 transition-colors"
-          >
-            How It Works
-          </button>
-          <button
-            onClick={() => scrollToSection("for-builders")}
-            className="text-gray-700 hover:text-teal-600 transition-colors"
-          >
-            For Builders
-          </button>
+          <Link href="/map" className="text-gray-700 hover:text-teal-600 transition-colors">
+            Map
+          </Link>
           <Link href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors">
             Blog
           </Link>
-          <button
-            onClick={() => scrollToSection("about")}
-            className="text-gray-700 hover:text-teal-600 transition-colors"
-          >
-            About
-          </button>
         </nav>
 
         <div className="hidden md:block">
@@ -131,6 +119,9 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
             <Link href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
               Manufacturers
             </Link>
+            <Link href="/models" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
+              Models
+            </Link>
             {/* Categories Expandable Menu */}
             <div>
               <button
@@ -157,27 +148,12 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
                 </div>
               )}
             </div>
-            <button
-              onClick={() => scrollToSection("how-it-works")}
-              className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
-            >
-              How It Works
-            </button>
-            <button
-              onClick={() => scrollToSection("for-builders")}
-              className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
-            >
-              For Builders
-            </button>
+            <Link href="/map" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
+              Map
+            </Link>
             <Link href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
               Blog
             </Link>
-            <button
-              onClick={() => scrollToSection("about")}
-              className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
-            >
-              About
-            </button>
             <Button
               className="bg-teal-600 hover:bg-teal-700 w-full"
               onClick={() => {

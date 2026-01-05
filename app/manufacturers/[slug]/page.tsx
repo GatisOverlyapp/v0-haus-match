@@ -10,6 +10,7 @@ import { MapPin, Building2, ArrowLeft, Mail } from "lucide-react"
 import { manufacturers, houseModels } from "../data"
 import { ModelCard } from "@/components/model-card"
 import { ContactForm } from "@/components/contact-form"
+import { GoogleMap } from "@/components/google-map"
 import {
   Dialog,
   DialogContent,
@@ -83,6 +84,42 @@ export default function ManufacturerPage({ params }: ManufacturerPageProps) {
               <h2 className="text-2xl font-bold text-gray-900">About {manufacturer.name}</h2>
             </div>
             <p className="text-gray-700 text-lg leading-relaxed">{manufacturer.description}</p>
+          </div>
+
+          {/* Location Section */}
+          <div className="bg-white rounded-lg shadow-md p-8 mb-8">
+            <div className="flex items-start gap-3 mb-6">
+              <MapPin className="w-6 h-6 text-teal-600 mt-1 flex-shrink-0" />
+              <h2 className="text-2xl font-bold text-gray-900">Location</h2>
+            </div>
+            
+            <div className="space-y-4">
+              {/* Map */}
+              <div className="w-full">
+                <GoogleMap
+                  manufacturers={[manufacturer]}
+                  height="350px"
+                  selectedManufacturerId={manufacturer.id}
+                  zoom={10}
+                />
+              </div>
+
+              {/* Location Address */}
+              <div className="flex items-center gap-2 text-gray-700">
+                <MapPin className="w-5 h-5 text-teal-600 flex-shrink-0" />
+                <p className="text-lg">{manufacturer.location}</p>
+              </div>
+
+              {/* View on Map Button */}
+              <div className="pt-2">
+                <Link href={`/map?manufacturer=${manufacturer.slug}`}>
+                  <Button className="bg-teal-600 hover:bg-teal-700">
+                    <MapPin className="w-4 h-4 mr-2" />
+                    View on Map
+                  </Button>
+                </Link>
+              </div>
+            </div>
           </div>
 
           {/* Models Section */}
