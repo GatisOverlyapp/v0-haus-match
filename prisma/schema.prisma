@@ -13,3 +13,35 @@ datasource db {
   provider = "sqlite"
   url      = env("DATABASE_URL")
 }
+
+model Waitlist {
+  id        String   @id @default(cuid())
+  name      String
+  email     String   @unique
+  createdAt DateTime @default(now())
+}
+
+model Lead {
+  id              String   @id @default(cuid())
+  name            String
+  email           String
+  phone           String?
+  landStatus      String
+  financingStatus String
+  timeline        String
+  budgetRange     String?
+  country         String?
+  houseType       String?
+  createdAt       DateTime @default(now())
+}
+
+model Contact {
+  id             String   @id @default(cuid())
+  manufacturerId String
+  modelId        String?
+  name           String
+  email          String
+  phone          String?
+  message        String
+  createdAt      DateTime @default(now())
+}

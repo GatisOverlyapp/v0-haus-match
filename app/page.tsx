@@ -39,6 +39,16 @@ import { Label } from "@/components/ui/label"
 import { subscribeToEarlyAccess } from "./actions"
 import { getWebARModelForHouse } from "@/lib/webar-models" // Import the new function
 import { HouseCard } from "@/components/house-card"
+import Link from "next/link"
+import { categories, getModelsByCategory } from "@/app/categories/data"
+import { WaitlistForm } from "@/components/waitlist-form"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 // Parse free-text query into structured search intent
 const parseSearchQuery = (query: string) => {
@@ -2998,11 +3008,65 @@ export default function LandingPage() {
                     </p>
                   </div>
 
-                  <div className="pt-4">
+                  <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
                     <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg" onClick={openSubscribeModal}>
                       Join Early Access
                     </Button>
+                    <Link href="/get-started">
+                      <Button variant="outline" className="px-8 py-6 text-lg border-2 border-teal-600 text-teal-600 hover:bg-teal-50">
+                        Get Started
+                      </Button>
+                    </Link>
                   </div>
+                </div>
+              </div>
+            </section>
+
+            {/* Browse by Category Section */}
+            <section className="w-full py-16 md:py-24 bg-white">
+              <div className="container px-4 md:px-6">
+                <div className="text-center mb-12">
+                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Browse by Category</h2>
+                  <p className="mt-3 text-gray-500 max-w-[700px] mx-auto">
+                    Explore our curated collection of prefab homes organized by style and type
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 max-w-6xl mx-auto">
+                  {categories.slice(0, 6).map((category) => {
+                    const modelCount = getModelsByCategory(category.slug).length
+                    return (
+                      <Link key={category.slug} href={`/categories/${category.slug}`} className="block">
+                        <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full">
+                          {/* Category Image */}
+                          <div className="relative h-48 w-full">
+                            <img
+                              src={category.heroImage || "/placeholder.svg"}
+                              alt={category.name}
+                              className="h-full w-full object-cover"
+                            />
+                          </div>
+
+                          {/* Content */}
+                          <div className="p-5">
+                            <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.name}</h3>
+                            <p className="text-sm text-gray-600 mb-3 line-clamp-2">{category.description}</p>
+                            <div className="text-sm text-teal-600 font-medium">
+                              {modelCount} {modelCount === 1 ? "model" : "models"}
+                            </div>
+                          </div>
+                        </Card>
+                      </Link>
+                    )
+                  })}
+                </div>
+
+                <div className="text-center">
+                  <Link href="/categories">
+                    <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg">
+                      View All Categories
+                    </Button>
+                  </Link>
                 </div>
               </div>
             </section>
@@ -3319,44 +3383,22 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* Subscription Modal */}
-      {showSubscribeModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Join Early Access</h2>
-              <button onClick={closeSubscribeModal} className="text-gray-500 hover:text-gray-700">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <form onSubmit={handleSubscribe} className="space-y-4">
-              <div>
-                <Label htmlFor="formName">Your Name</Label>
-                <Input
-                  type="text"
-                  id="formName"
-                  value={formName}
-                  onChange={(e) => setFormName(e.target.value)}
-                  required
-                />
-              </div>
-              <div>
-                <Label htmlFor="formEmail">Email</Label>
-                <Input
-                  type="email"
-                  id="formEmail"
-                  value={formEmail}
-                  onChange={(e) => setFormEmail(e.target.value)}
-                  required
-                />
-              </div>
-              <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={isSubmitting}>
-                {isSubmitting ? "Submitting..." : "Join Early Access"}
-              </Button>
-            </form>
-          </div>
-        </div>
-      )}
+      {/* Waitlist Modal */}
+      <Dialog open={showSubscribeModal} onOpenChange={setShowSubscribeModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Join Early Access</DialogTitle>
+            <DialogDescription>
+              Be the first to know when we launch. Get early access to exclusive features and updates.
+            </DialogDescription>
+          </DialogHeader>
+          <WaitlistForm
+            onSuccess={() => {
+              closeSubscribeModal()
+            }}
+          />
+        </DialogContent>
+      </Dialog>
 
       {/* Thank You Modal */}
       {showThankYouModal && (

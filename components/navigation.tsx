@@ -2,8 +2,15 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import { Home, Menu, X } from "lucide-react"
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+import { Home, Menu, X, ChevronDown, ChevronRight } from "lucide-react"
 import Link from "next/link"
+import { categories } from "@/app/categories/data"
 
 interface NavigationProps {
   openSubscribeModal?: () => void
@@ -12,6 +19,7 @@ interface NavigationProps {
 
 export function Navigation({ openSubscribeModal, isSticky = false }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false)
 
   const scrollToSection = (sectionId: string) => {
     if (typeof window === "undefined") return
@@ -50,6 +58,21 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
           <Link href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors">
             Manufacturers
           </Link>
+          <DropdownMenu>
+            <DropdownMenuTrigger className="text-gray-700 hover:text-teal-600 transition-colors flex items-center gap-1 outline-none">
+              Categories
+              <ChevronDown className="h-4 w-4" />
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="start" className="w-48">
+              {categories.map((category) => (
+                <DropdownMenuItem key={category.slug} asChild>
+                  <Link href={`/categories/${category.slug}`} className="cursor-pointer">
+                    {category.name}
+                  </Link>
+                </DropdownMenuItem>
+              ))}
+            </DropdownMenuContent>
+          </DropdownMenu>
           <button
             onClick={() => scrollToSection("how-it-works")}
             className="text-gray-700 hover:text-teal-600 transition-colors"
@@ -108,6 +131,32 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
             <Link href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
               Manufacturers
             </Link>
+            {/* Categories Expandable Menu */}
+            <div>
+              <button
+                onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
+                className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left flex items-center justify-between w-full"
+              >
+                <span>Categories</span>
+                <ChevronRight
+                  className={`h-4 w-4 transition-transform ${mobileCategoriesOpen ? "rotate-90" : ""}`}
+                />
+              </button>
+              {mobileCategoriesOpen && (
+                <div className="pl-4 mt-2 space-y-2">
+                  {categories.map((category) => (
+                    <Link
+                      key={category.slug}
+                      href={`/categories/${category.slug}`}
+                      className="text-gray-600 hover:text-teal-600 transition-colors py-1.5 text-left block text-sm"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      {category.name}
+                    </Link>
+                  ))}
+                </div>
+              )}
+            </div>
             <button
               onClick={() => scrollToSection("how-it-works")}
               className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"

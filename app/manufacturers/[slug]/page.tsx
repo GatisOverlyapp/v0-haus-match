@@ -7,7 +7,16 @@ import { useState } from "react"
 import { Navigation } from "@/components/navigation"
 import { Button } from "@/components/ui/button"
 import { MapPin, Building2, ArrowLeft, Mail } from "lucide-react"
-import { manufacturers } from "../data"
+import { manufacturers, houseModels } from "../data"
+import { ModelCard } from "@/components/model-card"
+import { ContactForm } from "@/components/contact-form"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 
 interface ManufacturerPageProps {
   params: Promise<{ slug: string }>
@@ -16,6 +25,7 @@ interface ManufacturerPageProps {
 export default function ManufacturerPage({ params }: ManufacturerPageProps) {
   const { slug } = use(params)
   const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
+  const [contactModalOpen, setContactModalOpen] = useState(false)
 
   const manufacturer = manufacturers.find((m) => m.slug === slug)
 
@@ -23,10 +33,8 @@ export default function ManufacturerPage({ params }: ManufacturerPageProps) {
     notFound()
   }
 
-  const handleContact = () => {
-    // TODO: Implement contact functionality
-    console.log("Contact manufacturer:", manufacturer.name)
-  }
+  // Filter models for this manufacturer
+  const manufacturerModels = houseModels.filter((model) => model.manufacturerId === manufacturer.id)
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -67,7 +75,7 @@ export default function ManufacturerPage({ params }: ManufacturerPageProps) {
 
       {/* Content */}
       <main className="container mx-auto px-4 py-12 md:py-16">
-        <div className="max-w-4xl mx-auto">
+        <div className="max-w-6xl mx-auto">
           {/* Description */}
           <div className="bg-white rounded-lg shadow-md p-8 mb-8">
             <div className="flex items-start gap-3 mb-6">
@@ -77,12 +85,28 @@ export default function ManufacturerPage({ params }: ManufacturerPageProps) {
             <p className="text-gray-700 text-lg leading-relaxed">{manufacturer.description}</p>
           </div>
 
+          {/* Models Section */}
+          <div className="mb-8">
+            <h2 className="text-2xl font-bold text-gray-900 mb-6">Models</h2>
+            {manufacturerModels.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {manufacturerModels.map((model) => (
+                  <ModelCard key={model.id} model={model} />
+                ))}
+              </div>
+            ) : (
+              <div className="bg-white rounded-lg shadow-md p-8 text-center">
+                <p className="text-gray-500 text-lg">No models available yet</p>
+              </div>
+            )}
+          </div>
+
           {/* Contact Button */}
           <div className="flex justify-center">
             <Button
               size="lg"
               className="bg-teal-600 hover:bg-teal-700 text-lg px-8 py-6"
-              onClick={handleContact}
+              onClick={() => setContactModalOpen(true)}
             >
               <Mail className="w-5 h-5 mr-2" />
               Contact Manufacturer
@@ -90,6 +114,25 @@ export default function ManufacturerPage({ params }: ManufacturerPageProps) {
           </div>
         </div>
       </main>
+
+      {/* Contact Form Modal */}
+      <Dialog open={contactModalOpen} onOpenChange={setContactModalOpen}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Contact {manufacturer.name}</DialogTitle>
+            <DialogDescription>
+              Send a message to {manufacturer.name} about their prefab homes and services.
+            </DialogDescription>
+          </DialogHeader>
+          <ContactForm
+            manufacturerId={manufacturer.id}
+            onSuccess={() => {
+              setContactModalOpen(false)
+            }}
+            onClose={() => setContactModalOpen(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   )
 }
