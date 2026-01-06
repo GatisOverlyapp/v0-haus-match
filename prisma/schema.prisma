@@ -39,6 +39,7 @@ model Manufacturer {
   name        String
   slug        String   @unique
   location    String
+  country     String
   lat         Float
   lng         Float
   description String

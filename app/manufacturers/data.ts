@@ -3,6 +3,7 @@ export interface Manufacturer {
   name: string
   slug: string
   location: string
+  country: string
   description: string
   logo?: string
 }
@@ -30,6 +31,7 @@ export const manufacturers: Manufacturer[] = [
     name: "Nordic Prefab Latvia",
     slug: "nordic-prefab-latvia",
     location: "Riga, Latvia",
+    country: "Latvia",
     description: "Leading manufacturer of Scandinavian-inspired prefab homes with sustainable materials and energy-efficient designs.",
     logo: "/placeholder-logo.svg",
   },
@@ -38,6 +40,7 @@ export const manufacturers: Manufacturer[] = [
     name: "Baltic Modular Homes",
     slug: "baltic-modular-homes",
     location: "Liepāja, Latvia",
+    country: "Latvia",
     description: "Specializing in modern modular homes and tiny houses, combining Baltic design aesthetics with contemporary living.",
     logo: "/placeholder-logo.svg",
   },
@@ -46,6 +49,7 @@ export const manufacturers: Manufacturer[] = [
     name: "EcoHaus Latvia",
     slug: "ecohaus-latvia",
     location: "Jūrmala, Latvia",
+    country: "Latvia",
     description: "Eco-friendly prefab homes focusing on passive house standards and renewable energy integration.",
     logo: "/placeholder-logo.svg",
   },
@@ -54,6 +58,7 @@ export const manufacturers: Manufacturer[] = [
     name: "Latvian Timber Homes",
     slug: "latvian-timber-homes",
     location: "Valmiera, Latvia",
+    country: "Latvia",
     description: "Traditional and modern timber-frame prefab homes using locally sourced Latvian wood.",
     logo: "/placeholder-logo.svg",
   },
@@ -62,6 +67,7 @@ export const manufacturers: Manufacturer[] = [
     name: "Scandinavian Prefab Co.",
     slug: "scandinavian-prefab-co",
     location: "Cēsis, Latvia",
+    country: "Latvia",
     description: "Premium prefab homes inspired by Scandinavian design, offering customizable floor plans and finishes.",
     logo: "/placeholder-logo.svg",
   },
@@ -70,6 +76,7 @@ export const manufacturers: Manufacturer[] = [
     name: "GreenBox Homes Latvia",
     slug: "greenbox-homes-latvia",
     location: "Daugavpils, Latvia",
+    country: "Latvia",
     description: "Innovative container-based and modular prefab homes with modern amenities and sustainable construction.",
     logo: "/placeholder-logo.svg",
   },

@@ -72,7 +72,7 @@ export default function AdminSidebar({ user }: AdminSidebarProps) {
       <div className="p-6 border-b border-gray-200 dark:border-gray-700">
         <Link href="/admin" className="flex items-center gap-2">
           <Home className="h-6 w-6" />
-          <span className="font-bold text-xl">HausMatch CMS</span>
+          <span className="font-bold text-xl">Prefab Catalog CMS</span>
         </Link>
       </div>
       

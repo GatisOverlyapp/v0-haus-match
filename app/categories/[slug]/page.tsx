@@ -24,7 +24,7 @@ export async function generateMetadata({ params }: CategoryPageProps): Promise<M
   }
 
   return {
-    title: `${category.name} | HausMatch Categories`,
+    title: `${category.name} | Prefab Catalog Categories`,
     description: category.description,
     keywords: `${category.name}, prefab homes, modular homes, ${category.name.toLowerCase()}`,
     openGraph: {
@@ -78,3 +78,4 @@ export default async function CategoryPage({ params }: CategoryPageProps) {
 
   return <CategoryDetailClientPage category={category} models={models} />
 }
+

@@ -122,7 +122,7 @@ export function Footer() {
         {/* Bottom Row */}
         <div className="border-t border-gray-800 pt-8">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-400">© 2026 HausMatch. All rights reserved.</p>
+            <p className="text-sm text-gray-400">© 2026 Prefab Catalog. All rights reserved.</p>
             <div className="flex gap-4 text-sm">
               <Link href="/privacy" className="hover:text-teal-400 transition-colors">
                 Privacy Policy

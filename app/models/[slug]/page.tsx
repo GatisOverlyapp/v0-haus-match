@@ -27,7 +27,7 @@ export async function generateMetadata({ params }: ModelPageProps): Promise<Meta
   const imageUrl = model.images && model.images.length > 0 ? model.images[0] : "/placeholder.svg"
 
   return {
-    title: `${model.name} | HausMatch`,
+    title: `${model.name} | Prefab Catalog`,
     description: model.description,
     keywords: `${model.category}, ${model.style_tags.join(", ")}, prefab, modular homes`,
     openGraph: {

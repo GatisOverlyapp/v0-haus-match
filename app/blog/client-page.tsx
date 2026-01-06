@@ -19,7 +19,7 @@ export default function BlogClientPage() {
       {/* Header */}
       <header className="bg-gradient-to-r from-teal-600 to-teal-700 text-white py-12 md:py-16">
         <div className="container mx-auto px-4">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4">HausMatch Blog</h1>
+          <h1 className="text-4xl md:text-5xl font-bold mb-4">Prefab Catalog Blog</h1>
           <p className="text-lg text-teal-100 max-w-2xl">
             Insights, trends, and stories about prefab homes, modular construction, and sustainable living.
           </p>

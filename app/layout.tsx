@@ -6,7 +6,7 @@ import { ThemeProvider } from "@/components/theme-provider"
 const inter = Inter({ subsets: ["latin"] })
 
 export const metadata = {
-  title: "HausMatch - Visualize Your Future Home",
+  title: "Prefab Catalog - Visualize Your Future Home",
   description: "Instantly place modular, prefab, or tiny homes on your land with just your phone—no app needed.",
     generator: 'v0.app'
 }

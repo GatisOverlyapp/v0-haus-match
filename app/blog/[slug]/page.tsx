@@ -16,15 +16,22 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     }
   }
 
+  // Enhanced SEO metadata
+  const keywords = post.slug === "adu-vs-jadu-comparison-guide"
+    ? "ADU vs JADU, accessory dwelling unit, junior accessory dwelling unit, California ADU laws 2025, ADU requirements, JADU requirements, ADU cost, backyard cottage, granny flat"
+    : `${post.category}, prefab, modular homes`
+
   return {
-    title: `${post.title} | HausMatch Blog`,
+    title: `${post.title} | Prefab Catalog Blog`,
     description: post.excerpt,
-    keywords: `${post.category}, prefab, modular homes`,
+    keywords: keywords,
+    authors: [{ name: post.author }],
     openGraph: {
       title: post.title,
       description: post.excerpt,
       type: "article",
       publishedTime: post.date,
+      modifiedTime: post.date,
       authors: [post.author],
       images: [
         {
@@ -34,6 +41,17 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
           alt: post.title,
         },
       ],
+      siteName: "Prefab Catalog",
+      url: `https://prefabcatalog.com/blog/${post.slug}`,
+    },
+    twitter: {
+      card: "summary_large_image",
+      title: post.title,
+      description: post.excerpt,
+      images: [post.image],
+    },
+    alternates: {
+      canonical: `https://prefabcatalog.com/blog/${post.slug}`,
     },
   }
 }

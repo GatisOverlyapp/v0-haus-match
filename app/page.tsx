@@ -16,8 +16,6 @@ import {
   Building2,
   Users,
   Mountain,
-  ChevronRight,
-  ChevronLeft,
   DollarSign,
   MapPin,
   Ruler,
@@ -32,6 +30,10 @@ import {
   Plus,
   Loader2,
   ImageIcon,
+  ChevronLeft,
+  ChevronRight,
+  Scale,
+  Handshake,
 } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
@@ -45,6 +47,9 @@ import { GoogleMap } from "@/components/google-map"
 import { Navigation } from "@/components/navigation"
 import { HomeSearch } from "@/components/home-search"
 import { Footer } from "@/components/footer"
+import { ModelCard } from "@/components/model-card"
+import { detectUserCountry, getCountryInfo, type CountryInfo } from "@/lib/location"
+import useEmblaCarousel from "embla-carousel-react"
 import { Suspense } from "react"
 import {
   Dialog,
@@ -1358,6 +1363,220 @@ const WEBAR_MODELS = [
   // { id: 2, url: "path/to/model2.glb" },
 ]
 
+// Featured Homes Carousel Component
+function FeaturedHomesCarousel({ models }: { models: any[] }) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ 
+    align: "start",
+    slidesToScroll: 1,
+    containScroll: "trimSnaps",
+    dragFree: true,
+  })
+  const [canScrollPrev, setCanScrollPrev] = useState(false)
+  const [canScrollNext, setCanScrollNext] = useState(false)
+
+  useEffect(() => {
+    if (!emblaApi) return
+
+    const updateScrollButtons = () => {
+      setCanScrollPrev(emblaApi.canScrollPrev())
+      setCanScrollNext(emblaApi.canScrollNext())
+    }
+
+    updateScrollButtons()
+    emblaApi.on("select", updateScrollButtons)
+    emblaApi.on("reInit", updateScrollButtons)
+
+    return () => {
+      emblaApi.off("select", updateScrollButtons)
+      emblaApi.off("reInit", updateScrollButtons)
+    }
+  }, [emblaApi])
+
+  const scrollPrev = () => emblaApi?.scrollPrev()
+  const scrollNext = () => emblaApi?.scrollNext()
+
+  return (
+    <section className="w-full bg-white pb-12 md:pb-16">
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-sm font-semibold text-gray-700 uppercase tracking-wide">
+            Popular Prefab Homes
+          </h2>
+          <Link 
+            href="#find-home" 
+            className="text-sm text-teal-600 hover:text-teal-700 font-medium flex items-center gap-1"
+            onClick={(e) => {
+              e.preventDefault()
+              const element = document.getElementById("find-home")
+              if (element) {
+                element.scrollIntoView({ behavior: "smooth" })
+              }
+            }}
+          >
+            Show More <ChevronRight className="h-4 w-4" />
+          </Link>
+        </div>
+
+        <div className="relative group">
+          {/* Carousel Container */}
+          <div className="overflow-hidden" ref={emblaRef}>
+            <div className="flex gap-6">
+              {models.map((model) => (
+                <div key={model.id} className="flex-[0_0_85%] sm:flex-[0_0_45%] md:flex-[0_0_32%] lg:flex-[0_0_30%]">
+                  <ModelCard model={model} />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Navigation Arrows (Desktop only, show on hover) */}
+          {models.length > 3 && (
+            <>
+              <button
+                onClick={scrollPrev}
+                disabled={!canScrollPrev}
+                className={`hidden md:flex absolute left-0 top-1/2 -translate-y-1/2 -translate-x-4 z-10 w-10 h-10 items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 hover:bg-gray-50 transition-opacity ${
+                  canScrollPrev ? "opacity-100" : "opacity-0 pointer-events-none"
+                } group-hover:opacity-100`}
+                aria-label="Previous homes"
+              >
+                <ChevronLeft className="h-5 w-5 text-gray-700" />
+              </button>
+              <button
+                onClick={scrollNext}
+                disabled={!canScrollNext}
+                className={`hidden md:flex absolute right-0 top-1/2 -translate-y-1/2 translate-x-4 z-10 w-10 h-10 items-center justify-center rounded-full bg-white shadow-lg border border-gray-200 hover:bg-gray-50 transition-opacity ${
+                  canScrollNext ? "opacity-100" : "opacity-0 pointer-events-none"
+                } group-hover:opacity-100`}
+                aria-label="Next homes"
+              >
+                <ChevronRight className="h-5 w-5 text-gray-700" />
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// Explore by Map Section Component
+function ExploreByMapSection({ manufacturers, selectedCountry }: { manufacturers: any[], selectedCountry: CountryInfo | null }) {
+  const countryManufacturers = selectedCountry
+    ? manufacturers.filter((m: any) => m.country === selectedCountry.name)
+    : manufacturers
+
+  const manufacturerCount = countryManufacturers.length
+
+  return (
+    <section className="w-full bg-white py-12 md:py-16 border-t border-gray-100">
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+        <div className="grid grid-cols-1 md:grid-cols-5 gap-8 items-center">
+          {/* Left Side - Map Preview (60%) */}
+          <div className="md:col-span-3 relative h-64 md:h-80 rounded-lg overflow-hidden border border-gray-200 shadow-sm">
+            <div className="absolute inset-0 bg-gray-100 flex items-center justify-center">
+              <GoogleMap
+                manufacturers={countryManufacturers}
+                height="100%"
+                zoom={selectedCountry?.name === "Latvia" ? 7 : 6}
+              />
+            </div>
+            <div className="absolute inset-0 bg-gradient-to-b from-transparent to-black/5 pointer-events-none" />
+          </div>
+
+          {/* Right Side - Content (40%) */}
+          <div className="md:col-span-2 space-y-4">
+            <h2 className="text-2xl md:text-3xl font-bold text-gray-900">
+              Find Builders Near You
+            </h2>
+            <p className="text-gray-600 leading-relaxed">
+              Discover prefab manufacturers in your area. View their portfolios and connect directly.
+            </p>
+            <Link href="/map">
+              <Button className="bg-teal-600 hover:bg-teal-700 text-white px-6 py-3 mt-4">
+                View Full Map
+              </Button>
+            </Link>
+            <p className="text-sm text-gray-500 mt-4">
+              {manufacturerCount} manufacturer{manufacturerCount !== 1 ? "s" : ""} {selectedCountry ? `in ${selectedCountry.name}` : "worldwide"}
+            </p>
+          </div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+// How It Works Section Component
+function HowItWorksSection() {
+  return (
+    <section className="w-full bg-gray-50 py-16 md:py-20 border-t border-gray-200">
+      <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+        <div className="text-center mb-12">
+          <h2 className="text-3xl md:text-4xl font-bold text-gray-900 mb-4">
+            How Prefab Catalog Works
+          </h2>
+          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+            Find your perfect prefab home in three simple steps
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-12 mb-12">
+          {/* Step 1: Browse */}
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-100 mb-6">
+              <Search className="h-8 w-8 text-teal-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Browse</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Explore hundreds of prefab options from verified manufacturers worldwide
+            </p>
+          </div>
+
+          {/* Step 2: Compare */}
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-100 mb-6">
+              <Scale className="h-8 w-8 text-teal-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Compare</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Compare prices, styles, and builders to find the perfect match for your needs
+            </p>
+          </div>
+
+          {/* Step 3: Connect */}
+          <div className="text-center">
+            <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-teal-100 mb-6">
+              <Handshake className="h-8 w-8 text-teal-600" />
+            </div>
+            <h3 className="text-xl font-bold text-gray-900 mb-3">Connect</h3>
+            <p className="text-gray-600 leading-relaxed">
+              Contact manufacturers directly to start your prefab home journey
+            </p>
+          </div>
+        </div>
+
+        <div className="text-center">
+          <Link href="#find-home">
+            <Button 
+              className="bg-teal-600 hover:bg-teal-700 text-white px-8 py-3 text-lg"
+              onClick={(e) => {
+                e.preventDefault()
+                const element = document.getElementById("find-home")
+                if (element) {
+                  element.scrollIntoView({ behavior: "smooth" })
+                }
+              }}
+            >
+              Get Started
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  )
+}
+
 export default function LandingPage() {
   // Changed from Home to LandingPage
   // State for the questionnaire
@@ -1366,6 +1585,42 @@ export default function LandingPage() {
   const [categories, setCategories] = useState<any[]>([])
   const [categoryModelCounts, setCategoryModelCounts] = useState<Record<string, number>>({})
   const [models, setModels] = useState<any[]>([])
+  const [selectedCountry, setSelectedCountry] = useState<CountryInfo | null>(null)
+  const [isDetectingCountry, setIsDetectingCountry] = useState(true)
+
+  // Detect country on mount
+  useEffect(() => {
+    const detectCountry = async () => {
+      if (typeof window === "undefined") return
+
+      const savedCountry = localStorage.getItem("selectedCountry")
+      if (savedCountry) {
+        const countryInfo = getCountryInfo(savedCountry)
+        setSelectedCountry(countryInfo)
+        setIsDetectingCountry(false)
+        return
+      }
+
+      try {
+        setIsDetectingCountry(true)
+        const countryInfo = await detectUserCountry()
+        setSelectedCountry(countryInfo)
+        if (typeof window !== "undefined") {
+          localStorage.setItem("selectedCountry", countryInfo.name)
+        }
+      } catch (error) {
+        console.error("Error detecting country:", error)
+        setSelectedCountry(getCountryInfo("Latvia"))
+        if (typeof window !== "undefined") {
+          localStorage.setItem("selectedCountry", "Latvia")
+        }
+      } finally {
+        setIsDetectingCountry(false)
+      }
+    }
+
+    detectCountry()
+  }, [])
 
   // Fetch manufacturers, categories, and models on mount
   useEffect(() => {
@@ -1395,6 +1650,7 @@ export default function LandingPage() {
               name: m.name,
               slug: m.slug,
               location: m.location,
+              country: m.country || "Latvia", // Include country field
               description: m.description,
               logo: m.logo || undefined,
               lat: m.lat,
@@ -2274,6 +2530,57 @@ export default function LandingPage() {
           </section>
         ) : (
           <>
+            {/* Dynamic Tagline */}
+            {models.length > 0 && manufacturers.length > 0 && (
+              <section className="w-full bg-white py-12 md:py-16">
+                <div className="container mx-auto px-4 md:px-6 max-w-6xl">
+                  {isDetectingCountry ? (
+                    <p className="text-center text-xl text-gray-600 font-medium">
+                      Loading...
+                    </p>
+                  ) : (
+                    <p className="text-center text-xl text-gray-600 font-medium">
+                      {(() => {
+                        // Calculate counts based on country
+                        const countryManufacturers = selectedCountry
+                          ? manufacturers.filter((m: any) => m.country === selectedCountry.name)
+                          : manufacturers
+                        const countryModels = selectedCountry
+                          ? models.filter((m: any) => {
+                              const manufacturer = manufacturers.find((man: any) => man.id === m.manufacturerId)
+                              return manufacturer?.country === selectedCountry.name
+                            })
+                          : models
+
+                        const modelCount = countryModels.length
+                        const manufacturerCount = countryManufacturers.length
+
+                        if (selectedCountry?.name === "Latvia") {
+                          return `Browse ${modelCount} prefab homes from ${manufacturerCount} manufacturer${manufacturerCount !== 1 ? "s" : ""} in Latvia`
+                        } else if (selectedCountry?.name === "United States" || selectedCountry?.name === "USA") {
+                          return `Browse ${modelCount} prefab homes from manufacturers across the USA`
+                        } else if (selectedCountry) {
+                          return `Browse ${modelCount} prefab homes from ${manufacturerCount} manufacturer${manufacturerCount !== 1 ? "s" : ""} in ${selectedCountry.name}`
+                        } else {
+                          return `Browse ${modelCount} prefab homes from ${manufacturerCount} manufacturer${manufacturerCount !== 1 ? "s" : ""} worldwide`
+                        }
+                      })()}
+                    </p>
+                  )}
+                </div>
+              </section>
+            )}
+
+            {/* Featured Homes Carousel */}
+            {models.length > 0 && manufacturers.length > 0 && (
+              <FeaturedHomesCarousel models={models.slice(0, 6)} />
+            )}
+
+            {/* Explore by Map Section */}
+            {models.length > 0 && manufacturers.length > 0 && (
+              <ExploreByMapSection manufacturers={manufacturers} selectedCountry={selectedCountry} />
+            )}
+
             {/* Home Search Section */}
             {models.length > 0 && manufacturers.length > 0 ? (
               <Suspense fallback={<div className="py-12 text-center">Loading search...</div>}>
@@ -2290,6 +2597,9 @@ export default function LandingPage() {
             )}
           </>
         )}
+
+        {/* How It Works Section */}
+        <HowItWorksSection />
       </main>
 
       {/* Builder Form Modal */}

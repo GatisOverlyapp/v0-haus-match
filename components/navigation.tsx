@@ -38,7 +38,7 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
         {/* Logo */}
         <Link href="/" className="flex items-center gap-2 font-semibold text-lg hover:text-teal-600 transition-colors">
           <Home className="h-6 w-6 text-teal-600" />
-          <span>HausMatch</span>
+          <span>Prefab Catalog</span>
         </Link>
 
         {/* Desktop Navigation */}
