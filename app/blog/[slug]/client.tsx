@@ -5,6 +5,7 @@ import { ArrowLeft, Calendar, Clock, Share2 } from "lucide-react"
 import { blogPosts } from "../data"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import { notFound } from "next/navigation"
 import { useState } from "react"
 
@@ -157,6 +158,7 @@ export default function BlogPostClientPage({ slug }: BlogPostClientPageProps) {
           )}
         </div>
       </article>
+      <Footer />
     </div>
   )
 }

@@ -43,6 +43,9 @@ import Link from "next/link"
 import { WaitlistForm } from "@/components/waitlist-form"
 import { GoogleMap } from "@/components/google-map"
 import { Navigation } from "@/components/navigation"
+import { HomeSearch } from "@/components/home-search"
+import { Footer } from "@/components/footer"
+import { Suspense } from "react"
 import {
   Dialog,
   DialogContent,
@@ -1362,6 +1365,7 @@ export default function LandingPage() {
   const [manufacturers, setManufacturers] = useState<any[]>([])
   const [categories, setCategories] = useState<any[]>([])
   const [categoryModelCounts, setCategoryModelCounts] = useState<Record<string, number>>({})
+  const [models, setModels] = useState<any[]>([])
 
   // Fetch manufacturers, categories, and models on mount
   useEffect(() => {
@@ -1413,6 +1417,11 @@ export default function LandingPage() {
             })
           }
           setCategoryModelCounts(counts)
+        }
+
+        // Validate and set models (manufacturer data should already be included from API)
+        if (Array.isArray(modelsData)) {
+          setModels(modelsData)
         }
       } catch (error) {
         console.error("Error fetching homepage data:", error)
@@ -2055,8 +2064,10 @@ export default function LandingPage() {
   }
 
   const demoWebARModel = getWebARModelForHouse("demo-section")
-
-  const arPreviewWebARModel = selectedHouse ? getWebARModelForHouse(String(selectedHouse.id)) : WEBAR_MODELS[0]
+  
+  const arPreviewWebARModel = selectedHouse
+    ? getWebARModelForHouse(String(selectedHouse.id))
+    : WEBAR_MODELS[0]?.url || "https://create.overlyapp.com/webar/bb8b28bcff8abb7a398cba29d7bcdb0725d0b05e"
 
   return (
     <div className="w-full bg-white">
@@ -2263,1040 +2274,20 @@ export default function LandingPage() {
           </section>
         ) : (
           <>
-            {/* Questionnaire Section (Moved to top) */}
-            <section id="find-home" className="w-full py-12 md:py-24 bg-white">
-              <div className="container px-4 md:px-6 relative z-10">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                    Your AI Assistant for Finding the Perfect Prefab Home
-                  </h2>
-                  <p className="mt-3 text-gray-500 max-w-[700px] mx-auto">
-                    We connect you with the right house and the people who build it.
-                  </p>
-                </div>
-
-                <div className="max-w-3xl mx-auto">
-                  {/* Progress bar */}
-                  {!showRefinementSurvey && (
-                    <div className="mb-8">
-                      <div className="flex justify-between text-sm text-gray-500 mb-2">
-                        <span>Step {currentStep} of 5</span>
-                        {!showResults && <span>{Math.round(progress)}% Complete</span>}
-                      </div>
-                      <Progress value={showResults ? 100 : progress} className="h-2" />
-                    </div>
-                  )}
-
-                  {/* Questionnaire */}
-                  {!showResults ? (
-                    <div className="bg-white rounded-lg shadow-md p-8">
-                      {/* Step 1: Home Type */}
-                      {currentStep === 1 && !showPinterestResults && (
-                        <div className="space-y-6">
-                          <h3 className="text-xl font-semibold">What type of home are you looking for?</h3>
-
-                          <div className="relative">
-                            <Input
-                              ref={inputRef}
-                              type="text"
-                              placeholder="Type or describe what you're looking for (e.g., 'nordic A-frame cabin in Sweden')..."
-                              value={customType}
-                              onChange={(e) => {
-                                setCustomType(e.target.value)
-                                setHomeType("")
-                                setIsTyping(true)
-                              }}
-                              className="h-12 text-lg"
-                              onKeyDown={(e) => {
-                                if (e.key === "Enter") {
-                                  if (isPinterestUrl) {
-                                    analyzePinterestProfile()
-                                  } else if (customType.trim()) {
-                                    // Handle AI search
-                                    handleFreeTextSearch(customType)
-                                  } else if (filteredHomeTypes.length > 0) {
-                                    handleHomeTypeSelect(filteredHomeTypes[0])
-                                  }
-                                }
-                              }}
-                            />
-                          </div>
-
-                          {/* Pinterest URL Analysis UI */}
-                          {isPinterestUrl && !isAnalyzingPinterest && (
-                            <div className="mt-4 p-4 bg-teal-50 rounded-lg">
-                              <div className="flex items-center gap-2 mb-2">
-                                <ImageIcon className="h-5 w-5 text-teal-600" />
-                                <p className="text-teal-800 font-medium">Pinterest profile detected!</p>
-                              </div>
-                              <p className="text-gray-600 mb-4">
-                                We can analyze your Pinterest boards to suggest homes that match your style preferences.
-                              </p>
-                              <Button
-                                onClick={analyzePinterestProfile}
-                                className="w-full bg-teal-600 hover:bg-teal-700"
-                              >
-                                Analyze My Pinterest Profile
-                              </Button>
-                            </div>
-                          )}
-
-                          {/* Pinterest Analysis Progress */}
-                          {isAnalyzingPinterest && (
-                            <div className="mt-4 p-4 bg-teal-50 rounded-lg">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Loader2 className="h-5 w-5 text-teal-600 animate-spin" />
-                                <p className="text-teal-800 font-medium">Analyzing your Pinterest profile...</p>
-                              </div>
-                              <div className="space-y-2">
-                                <Progress value={pinterestAnalysisProgress} className="h-2" />
-                                <div className="text-xs text-gray-500 flex justify-between">
-                                  <span>Scanning boards</span>
-                                  <span>{Math.round(pinterestAnalysisProgress)}%</span>
-                                </div>
-                              </div>
-                              <div className="mt-3 text-sm text-gray-600">
-                                <p>Identifying your style preferences and home type interests...</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Text Analysis Progress */}
-                          {isAnalyzingText && (
-                            <div className="mt-4 p-4 bg-teal-50 rounded-lg">
-                              <div className="flex items-center gap-2 mb-2">
-                                <Loader2 className="h-5 w-5 text-teal-600 animate-spin" />
-                                <p className="text-teal-800 font-medium">Understanding your request…</p>
-                              </div>
-                              <div className="space-y-2">
-                                <Progress value={textAnalysisProgress} className="h-2" />
-                                <div className="text-xs text-gray-500 flex justify-between">
-                                  <span>Extracting style & type</span>
-                                  <span>{Math.round(textAnalysisProgress)}%</span>
-                                </div>
-                              </div>
-                              <div className="mt-3 text-sm text-gray-600">
-                                <p>Applying budget, size, and location…</p>
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Show filtered suggestions when typing */}
-                          {customType && filteredHomeTypes.length > 0 && !isPinterestUrl && (
-                            <div className="flex flex-wrap gap-2 mt-2">
-                              {filteredHomeTypes.map((type) => (
-                                <Badge
-                                  key={type}
-                                  variant="outline"
-                                  className="px-4 py-2 text-sm cursor-pointer hover:bg-gray-100"
-                                  onClick={() => handleHomeTypeSelect(type)}
-                                >
-                                  {type}
-                                </Badge>
-                              ))}
-                            </div>
-                          )}
-
-                          {!isPinterestUrl && (
-                            <div className="flex flex-wrap gap-2 mt-4">
-                              {homeTypes.map((type) => (
-                                <Badge
-                                  key={type}
-                                  variant={homeType === type ? "default" : "outline"}
-                                  className={`px-4 py-2 text-sm cursor-pointer ${
-                                    homeType === type ? "bg-teal-600" : "hover:bg-gray-100"
-                                  }`}
-                                  onClick={() => handleHomeTypeSelect(type)}
-                                >
-                                  {type}
-                                </Badge>
-                              ))}
-                              <Badge
-                                variant={homeType === "Custom" && customType !== "" ? "default" : "outline"}
-                                className={`px-4 py-2 text-sm cursor-pointer ${
-                                  homeType === "Custom" && customType !== "" ? "bg-teal-600" : "hover:bg-gray-100"
-                                }`}
-                                onClick={() => {
-                                  if (customType) {
-                                    setHomeType("Custom")
-                                    setStepsCompleted({ ...stepsCompleted, 1: true })
-                                  } else {
-                                    setIsTyping(true)
-                                    setTimeout(() => {
-                                      inputRef.current?.focus()
-                                    }, 0)
-                                  }
-                                }}
-                              >
-                                Custom
-                              </Badge>
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Pinterest Results Display */}
-                      {showPinterestResults && !showRefinementSurvey && (
-                        <div className="space-y-6">
-                          <div className="text-center">
-                            <h3 className="text-xl font-semibold mb-2">
-                              Based on your Pinterest style, here's what we found!
-                            </h3>
-                            <p className="text-gray-600">
-                              We found {pinterestResults.length} homes that match your aesthetic preferences.
-                            </p>
-
-                            {/* Show detected styles */}
-                            <div className="flex flex-wrap gap-2 justify-center mt-4">
-                              <span className="text-sm text-gray-500">Detected styles:</span>
-                              {interiorStyles.map((style) => (
-                                <Badge key={style} className="bg-teal-100 text-teal-800">
-                                  {style}
-                                </Badge>
-                              ))}
-                            </div>
-                          </div>
-
-                          {/* Pinterest Results Grid */}
-                          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3 max-h-96 overflow-y-auto">
-                            {pinterestResults.slice(0, 6).map((house) => (
-                              <Card
-                                key={house.id}
-                                className="overflow-hidden border-0 shadow-sm cursor-pointer hover:shadow-md transition-shadow"
-                                onClick={() => handleSeeMore(house)}
-                              >
-                                <div className="relative h-32 w-full">
-                                  <img
-                                    src={house.image || "/placeholder.svg"}
-                                    alt={house.name}
-                                    className="h-full w-full object-cover"
-                                  />
-                                </div>
-                                <div className="p-3">
-                                  <div className="flex justify-between items-start mb-1">
-                                    <h4 className="text-sm font-semibold truncate">{house.name}</h4>
-                                    <Badge className="bg-teal-100 text-teal-800 text-xs">{house.type}</Badge>
-                                  </div>
-                                  <div className="flex items-center gap-3 text-gray-600 text-xs">
-                                    <div className="flex items-center">
-                                      <Ruler className="h-3 w-3 mr-1" />
-                                      <span>{house.size} m²</span>
-                                    </div>
-                                    <div className="flex items-center">
-                                      <DollarSign className="h-3 w-3 mr-1" />
-                                      <span>{formatPrice(house.price)}</span>
-                                    </div>
-                                  </div>
-                                </div>
-                              </Card>
-                            ))}
-                          </div>
-
-                          <div className="text-center space-y-4">
-                            <p className="text-gray-600">
-                              Want to narrow down these results? Let's add a few more details to find your perfect
-                              match.
-                            </p>
-                            <div className="flex gap-3 justify-center">
-                              <Button variant="outline" onClick={closePinterestResults} className="bg-transparent">
-                                Start Over
-                              </Button>
-                              <Button onClick={startPinterestRefinement} className="bg-teal-600 hover:bg-teal-700">
-                                Refine Results
-                              </Button>
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Pinterest Refinement Survey */}
-                      {showRefinementSurvey && (
-                        <div className="space-y-6">
-                          <div className="text-center mb-6">
-                            <h3 className="text-xl font-semibold">Let's refine your results</h3>
-                            <p className="text-gray-600">Step {pinterestRefinementStep} of 3</p>
-                            <Progress value={(pinterestRefinementStep / 3) * 100} className="h-2 mt-2" />
-                          </div>
-
-                          {/* Refinement Step 1: Size */}
-                          {pinterestRefinementStep === 1 && (
-                            <div className="space-y-4">
-                              <h4 className="text-lg font-medium">What size are you looking for?</h4>
-                              <div className="relative">
-                                <Input
-                                  type="text"
-                                  placeholder="Enter size in square meters..."
-                                  value={homeSize}
-                                  onChange={(e) => {
-                                    setHomeSize(e.target.value)
-                                    setStepsCompleted({ ...stepsCompleted, 2: !!e.target.value })
-                                  }}
-                                  className="h-12 text-lg"
-                                />
-                                <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                                  <span className="text-gray-500">m²</span>
-                                </div>
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {sizeRanges.map((range) => (
-                                  <Badge
-                                    key={range}
-                                    variant={homeSize === range ? "default" : "outline"}
-                                    className={`px-4 py-2 text-sm cursor-pointer ${
-                                      homeSize === range ? "bg-teal-600" : "hover:bg-gray-100"
-                                    }`}
-                                    onClick={() => {
-                                      setHomeSize(range)
-                                      setStepsCompleted({ ...stepsCompleted, 2: true })
-                                    }}
-                                  >
-                                    {range}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Refinement Step 2: Budget */}
-                          {pinterestRefinementStep === 2 && (
-                            <div className="space-y-4">
-                              <h4 className="text-lg font-medium">What is your budget?</h4>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                  <DollarSign className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <Input
-                                  type="text"
-                                  placeholder="Enter your budget..."
-                                  value={budget}
-                                  onChange={(e) => {
-                                    setBudget(e.target.value)
-                                    setStepsCompleted({ ...stepsCompleted, 4: !!e.target.value })
-                                  }}
-                                  className="h-12 text-lg pl-10"
-                                />
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {budgetRanges.map((range) => (
-                                  <Badge
-                                    key={range}
-                                    variant={budget === range ? "default" : "outline"}
-                                    className={`px-4 py-2 text-sm cursor-pointer ${
-                                      budget === range ? "bg-teal-600" : "hover:bg-gray-100"
-                                    }`}
-                                    onClick={() => {
-                                      setBudget(range)
-                                      setStepsCompleted({ ...stepsCompleted, 4: true })
-                                    }}
-                                  >
-                                    {range}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Refinement Step 3: Location */}
-                          {pinterestRefinementStep === 3 && (
-                            <div className="space-y-4">
-                              <h4 className="text-lg font-medium">
-                                How far from your location should it be available?
-                              </h4>
-                              <div className="relative">
-                                <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                  <MapPin className="h-5 w-5 text-gray-400" />
-                                </div>
-                                <Input
-                                  type="text"
-                                  placeholder="Enter distance..."
-                                  value={distance}
-                                  onChange={(e) => {
-                                    setDistance(e.target.value)
-                                    setStepsCompleted({ ...stepsCompleted, 5: !!e.target.value })
-                                  }}
-                                  className="h-12 text-lg pl-10"
-                                />
-                              </div>
-                              <div className="flex flex-wrap gap-2">
-                                {distanceOptions.map((option) => (
-                                  <Badge
-                                    key={option}
-                                    variant={distance === option ? "default" : "outline"}
-                                    className={`px-4 py-2 text-sm cursor-pointer ${
-                                      distance === option ? "bg-teal-600" : "hover:bg-gray-100"
-                                    }`}
-                                    onClick={() => {
-                                      setDistance(option)
-                                      setStepsCompleted({ ...stepsCompleted, 5: true })
-                                    }}
-                                  >
-                                    {option}
-                                  </Badge>
-                                ))}
-                              </div>
-                            </div>
-                          )}
-
-                          {/* Refinement Navigation */}
-                          <div className="flex justify-between mt-8">
-                            <Button
-                              variant="outline"
-                              onClick={
-                                pinterestRefinementStep === 1
-                                  ? () => setShowRefinementSurvey(false)
-                                  : handlePinterestRefinementPrev
-                              }
-                              className="flex items-center bg-transparent"
-                            >
-                              <ChevronLeft className="mr-1 h-4 w-4" />
-                              {pinterestRefinementStep === 1 ? "Back to Results" : "Back"}
-                            </Button>
-                            <Button
-                              onClick={handlePinterestRefinementNext}
-                              className="bg-teal-600 hover:bg-teal-700 flex items-center"
-                            >
-                              {pinterestRefinementStep === 3 ? "Apply Filters" : "Next"}
-                              <ChevronRight className="ml-1 h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Step 2: Home Size */}
-                      {currentStep === 2 && (
-                        <div className="space-y-6">
-                          <h3 className="text-xl font-semibold">What size are you looking for?</h3>
-                          <div className="relative">
-                            <Input
-                              type="text"
-                              placeholder="Enter size in square meters..."
-                              value={homeSize}
-                              onChange={(e) => {
-                                setHomeSize(e.target.value)
-                                setStepsCompleted({ ...stepsCompleted, 2: !!e.target.value })
-                              }}
-                              className="h-12 text-lg"
-                            />
-                            <div className="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none">
-                              <span className="text-gray-500">m²</span>
-                            </div>
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {sizeRanges.map((range) => (
-                              <Badge
-                                key={range}
-                                variant={homeSize === range ? "default" : "outline"}
-                                className={`px-4 py-2 text-sm cursor-pointer ${
-                                  homeSize === range ? "bg-teal-600" : "hover:bg-gray-100"
-                                }`}
-                                onClick={() => {
-                                  setHomeSize(range)
-                                  setStepsCompleted({ ...stepsCompleted, 2: true })
-                                }}
-                              >
-                                {range}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Step 3: Interior Style */}
-                      {currentStep === 3 && (
-                        <div className="space-y-6">
-                          <h3 className="text-xl font-semibold">What interior style do you prefer?</h3>
-                          <p className="text-gray-600">Select up to 3 styles that appeal to you</p>
-                          <div className="flex flex-wrap gap-2">
-                            {styleOptions.map((style) => (
-                              <Badge
-                                key={style}
-                                variant={interiorStyles.includes(style) ? "default" : "outline"}
-                                className={`px-4 py-2 text-sm cursor-pointer ${
-                                  interiorStyles.includes(style) ? "bg-teal-600" : "hover:bg-gray-100"
-                                }`}
-                                onClick={() => handleStyleToggle(style)}
-                              >
-                                {style}
-                              </Badge>
-                            ))}
-                          </div>
-                          {interiorStyles.length > 0 && (
-                            <div className="text-sm text-gray-600">
-                              Selected: {interiorStyles.join(", ")} ({interiorStyles.length}/3)
-                            </div>
-                          )}
-                        </div>
-                      )}
-
-                      {/* Step 4: Budget */}
-                      {currentStep === 4 && (
-                        <div className="space-y-6">
-                          <h3 className="text-xl font-semibold">What is your budget?</h3>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                              <DollarSign className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <Input
-                              type="text"
-                              placeholder="Enter your budget..."
-                              value={budget}
-                              onChange={(e) => {
-                                setBudget(e.target.value)
-                                setStepsCompleted({ ...stepsCompleted, 4: !!e.target.value })
-                              }}
-                              className="h-12 text-lg pl-10"
-                            />
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {budgetRanges.map((range) => (
-                              <Badge
-                                key={range}
-                                variant={budget === range ? "default" : "outline"}
-                                className={`px-4 py-2 text-sm cursor-pointer ${
-                                  budget === range ? "bg-teal-600" : "hover:bg-gray-100"
-                                }`}
-                                onClick={() => {
-                                  setBudget(range)
-                                  setStepsCompleted({ ...stepsCompleted, 4: true })
-                                }}
-                              >
-                                {range}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Step 5: Distance */}
-                      {currentStep === 5 && (
-                        <div className="space-y-6">
-                          <h3 className="text-xl font-semibold">How far from your location should it be available?</h3>
-                          <div className="relative">
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                              <MapPin className="h-5 w-5 text-gray-400" />
-                            </div>
-                            <Input
-                              type="text"
-                              placeholder="Enter distance..."
-                              value={distance}
-                              onChange={(e) => {
-                                setDistance(e.target.value)
-                                setStepsCompleted({ ...stepsCompleted, 5: !!e.target.value })
-                              }}
-                              className="h-12 text-lg pl-10"
-                            />
-                          </div>
-                          <div className="flex flex-wrap gap-2">
-                            {distanceOptions.map((option) => (
-                              <Badge
-                                key={option}
-                                variant={distance === option ? "default" : "outline"}
-                                className={`px-4 py-2 text-sm cursor-pointer ${
-                                  distance === option ? "bg-teal-600" : "hover:bg-gray-100"
-                                }`}
-                                onClick={() => {
-                                  setDistance(option)
-                                  setStepsCompleted({ ...stepsCompleted, 5: true })
-                                }}
-                              >
-                                {option}
-                              </Badge>
-                            ))}
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Navigation buttons */}
-                      {!showPinterestResults && !showRefinementSurvey && (
-                        <div className="flex justify-between mt-10">
-                          {/* Only show Back button if not on first step */}
-                          {currentStep > 1 && (
-                            <Button
-                              variant="outline"
-                              onClick={handlePrevStep}
-                              className="flex items-center bg-transparent"
-                            >
-                              <ChevronLeft className="mr-1 h-4 w-4" /> Back
-                            </Button>
-                          )}
-                          {currentStep === 1 && <div></div>}
-                          <Button
-                            onClick={() => {
-                              // If on step 1 and there's custom text but no home type selected, run text search
-                              if (currentStep === 1 && customType.trim() && !homeType && !isPinterestUrl) {
-                                handleFreeTextSearch(customType)
-                              } else {
-                                handleNextStep()
-                              }
-                            }}
-                            className="bg-teal-600 hover:bg-teal-700 flex items-center"
-                            disabled={
-                              (!stepsCompleted[currentStep] && !(currentStep === 1 && customType.trim())) ||
-                              isAnalyzingPinterest ||
-                              isAnalyzingText
-                            }
-                          >
-                            {currentStep === 1 && customType.trim() && !homeType && !isPinterestUrl
-                              ? "Search"
-                              : currentStep === 5
-                                ? "Show Results"
-                                : "Next"}
-                            <ChevronRight className="ml-1 h-4 w-4" />
-                          </Button>
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    // Results section
-                    <div className="space-y-8">
-                      <div className="bg-white rounded-lg shadow-md p-6">
-                        <div className="flex justify-between items-center mb-6">
-                          <h3 className="text-xl font-semibold">Homes matching your criteria</h3>
-                          <Button
-                            variant="outline"
-                            onClick={() => {
-                              setShowResults(false)
-                              setCurrentStep(1)
-                              setStepsCompleted({
-                                1: !!homeType,
-                                2: !!homeSize,
-                                3: interiorStyles.length > 0,
-                                4: !!budget,
-                                5: !!distance,
-                              })
-                              setInitialResultsLoaded(false)
-                            }}
-                            className="text-sm"
-                          >
-                            Modify Search
-                          </Button>
-                        </div>
-
-                        <div className="flex flex-wrap gap-2 mb-6">
-                          {homeType && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {homeType === "Custom" ? customType : homeType}
-                            </Badge>
-                          )}
-                          {homeSize && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {homeSize}
-                            </Badge>
-                          )}
-                          {interiorStyles.length > 0 && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {interiorStyles.length === 1
-                                ? interiorStyles[0]
-                                : `${interiorStyles.length} styles selected`}
-                            </Badge>
-                          )}
-                          {budget && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {budget}
-                            </Badge>
-                          )}
-                          {distance && (
-                            <Badge className="bg-gray-100 text-gray-800 hover:bg-gray-100 hover:text-gray-800">
-                              {distance}
-                            </Badge>
-                          )}
-                        </div>
-
-                        {filteredHouses.length === 0 && (
-                          <div className="text-center py-8">
-                            <p className="text-gray-500">
-                              No homes match your criteria. Try adjusting your preferences.
-                            </p>
-                          </div>
-                        )}
-                      </div>
-
-                      {filteredHouses.length > 0 && (
-                        <div className="space-y-8">
-                          <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2">
-                            {visibleFilteredHouses.map((house) => (
-                              <HouseCard
-                                key={house.id}
-                                house={house}
-                                onImageClick={openImageModal}
-                                onSeeMore={handleSeeMore}
-                                formatPrice={formatPrice}
-                              />
-                            ))}
-                          </div>
-
-                          {hasMoreFilteredHouses && (
-                            <div className="flex justify-center mt-8">
-                              <Button
-                                variant="outline"
-                                onClick={loadMoreFilteredHouses}
-                                className="flex items-center gap-2 bg-transparent"
-                              >
-                                Load more <Plus className="h-4 w-4" />
-                              </Button>
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  )}
-                </div>
-              </div>
-            </section>
-
-            {/* 1. Hero Section */}
-            <section className="w-full py-12 md:py-24 lg:py-32 bg-white relative">
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-15"
-                style={{ backgroundImage: 'url("/images/header-1.jpg")' }}
-              ></div>
-              <div className="container px-4 md:px-6 relative z-10">
-                <div className="flex flex-col items-center space-y-6 text-center">
-                  <div className="space-y-3 max-w-4xl">
-                    <h1 className="text-3xl font-bold tracking-tighter sm:text-4xl md:text-5xl lg:text-6xl/none">
-                      Forget endless searching.
-                    </h1>
-                    <p className="mx-auto max-w-[800px] text-gray-600 md:text-xl mt-4">
-                      We'll help you find the prefab home you didn't know existed and connect you with the right builder
-                      for a better deal.
-                    </p>
-                  </div>
-
-                  <div className="pt-4 flex flex-col sm:flex-row gap-4 justify-center">
-                    <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg" onClick={openSubscribeModal}>
-                      Join Early Access
-                    </Button>
-                    <Link href="/get-started">
-                      <Button variant="outline" className="px-8 py-6 text-lg border-2 border-teal-600 text-teal-600 hover:bg-teal-50">
-                        Get Started
-                      </Button>
-                    </Link>
+            {/* Home Search Section */}
+            {models.length > 0 && manufacturers.length > 0 ? (
+              <Suspense fallback={<div className="py-12 text-center">Loading search...</div>}>
+                <HomeSearch models={models} manufacturers={manufacturers} />
+              </Suspense>
+            ) : (
+              <section id="find-home" className="w-full py-12 md:py-24 bg-white">
+                <div className="container px-4 md:px-6">
+                  <div className="text-center">
+                    <p className="text-gray-500">Loading search...</p>
                   </div>
                 </div>
-              </div>
-            </section>
-
-            {/* Browse by Category Section */}
-            <section className="w-full py-16 md:py-24 bg-white">
-              <div className="container px-4 md:px-6">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Browse by Category</h2>
-                  <p className="mt-3 text-gray-500 max-w-[700px] mx-auto">
-                    Explore our curated collection of prefab homes organized by style and type
-                  </p>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8 max-w-6xl mx-auto">
-                  {categories && categories.length > 0 ? (
-                    categories.slice(0, 6).map((category) => {
-                      const modelCount = categoryModelCounts[category.slug] || 0
-                      return (
-                        <Link key={category.slug} href={`/categories/${category.slug}`} className="block">
-                          <Card className="overflow-hidden border-0 shadow-md hover:shadow-lg transition-shadow duration-300 cursor-pointer h-full">
-                            {/* Category Image */}
-                            <div className="relative h-48 w-full">
-                              <img
-                                src={category.heroImage || "/placeholder.svg"}
-                                alt={category.name}
-                                className="h-full w-full object-cover"
-                              />
-                            </div>
-
-                            {/* Content */}
-                            <div className="p-5">
-                              <h3 className="text-lg font-semibold text-gray-900 mb-2">{category.name}</h3>
-                              <p className="text-sm text-gray-600 mb-3 line-clamp-2">{category.description}</p>
-                              <div className="text-sm text-teal-600 font-medium">
-                                {modelCount} {modelCount === 1 ? "model" : "models"}
-                              </div>
-                            </div>
-                          </Card>
-                        </Link>
-                      )
-                    })
-                  ) : (
-                    <div className="col-span-full text-center py-8 text-gray-500">
-                      Loading categories...
-                    </div>
-                  )}
-                </div>
-
-                <div className="text-center">
-                  <Link href="/categories">
-                    <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg">
-                      View All Categories
-                    </Button>
-                  </Link>
-                </div>
-              </div>
-            </section>
-
-            {/* Explore Manufacturers Map Section */}
-            <section className="w-full py-16 md:py-24 bg-gray-50">
-              <div className="container px-4 md:px-6">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl mb-4">
-                    Explore Manufacturers on Map
-                  </h2>
-                  <p className="text-gray-600 max-w-2xl mx-auto text-lg">
-                    Find prefab home manufacturers across Latvia. Click markers to view profiles.
-                  </p>
-                </div>
-
-                <div className="max-w-6xl mx-auto">
-                  <div className="hidden md:block">
-                    <GoogleMap manufacturers={manufacturers} height="600px" />
-                  </div>
-                  <div className="md:hidden">
-                    <GoogleMap manufacturers={manufacturers} height="400px" />
-                  </div>
-                  
-                  {/* Explore Full Map Button */}
-                  <div className="text-center mt-8">
-                    <Link href="/map">
-                      <Button className="bg-teal-600 hover:bg-teal-700 px-8 py-6 text-lg">
-                        <MapPin className="w-5 h-5 mr-2" />
-                        Explore Full Map
-                      </Button>
-                    </Link>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 2. How It Works (3-Step Block) */}
-            <section id="how-it-works" className="w-full py-16 md:py-24 bg-gray-50">
-              <div className="container px-4 md:px-6">
-                <div className="text-center mb-12">
-                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">How It Works</h2>
-                  <p className="mt-3 text-gray-500 max-w-[700px] mx-auto">
-                    Three simple steps to find and visualize your perfect prefab home
-                  </p>
-                </div>
-
-                <div className="grid gap-10 md:grid-cols-3 max-w-5xl mx-auto">
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center mb-2">
-                      <Search className="h-8 w-8 text-teal-600" />
-                    </div>
-                    <h3 className="text-xl font-bold">Describe Your Dream Home</h3>
-                    <p className="text-gray-500">Tell us your style, budget, and location.</p>
-                  </div>
-
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center mb-2">
-                      <Zap className="h-8 w-8 text-teal-600" />
-                    </div>
-                    <h3 className="text-xl font-bold">Get Instant Matches</h3>
-                    <p className="text-gray-500">Our AI suggests homes that fit you perfectly.</p>
-                  </div>
-
-                  <div className="flex flex-col items-center text-center space-y-4">
-                    <div className="w-16 h-16 rounded-full bg-teal-100 flex items-center justify-center mb-2">
-                      <Smartphone className="h-8 w-8 text-teal-600" />
-                    </div>
-                    <h3 className="text-xl font-bold">See It In Real Space</h3>
-                    <p className="text-gray-500">Visualize your future home on your own land using your phone.</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 4. For Builders – Dedicated Section */}
-            <section id="for-builders" className="w-full py-16 md:py-24 bg-gray-50">
-              <div className="container px-4 md:px-6">
-                <div className="grid md:grid-cols-2 gap-12 items-center max-w-6xl mx-auto">
-                  <div className="space-y-6">
-                    <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">Built for Builders Too</h2>
-                    <p className="text-gray-600 text-lg leading-relaxed">
-                      Reach highly engaged buyers looking for homes like yours. Upload your models, let customers
-                      preview them in AR, and receive direct leads all without app development or extra tech.
-                    </p>
-                    <ul className="space-y-3">
-                      <li className="flex items-start gap-3">
-                        <Check className="h-6 w-6 text-teal-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">
-                          Showcase your prefab and modular homes to interested buyers
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Check className="h-6 w-6 text-teal-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">
-                          Let customers visualize your designs in real-world settings
-                        </span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Check className="h-6 w-6 text-teal-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">Connect with pre-qualified leads who love your designs</span>
-                      </li>
-                      <li className="flex items-start gap-3">
-                        <Check className="h-6 w-6 text-teal-600 mt-0.5 flex-shrink-0" />
-                        <span className="text-gray-700">No need for expensive app development or 3D expertise</span>
-                      </li>
-                    </ul>
-                    <div className="pt-4">
-                      <Button className="bg-teal-600 hover:bg-teal-700 px-6" onClick={openBuilderForm}>
-                        List Your Homes
-                      </Button>
-                    </div>
-                  </div>
-                  <div className="flex justify-center">
-                    <div className="relative w-full max-w-md aspect-square bg-gray-100 rounded-lg overflow-hidden shadow-md flex items-center justify-center">
-                      <div className="grid grid-cols-2 gap-6 p-8">
-                        <div className="bg-white p-5 rounded shadow-sm flex flex-col items-center">
-                          <Building2 className="h-10 w-10 text-teal-600 mb-3" />
-                          <p className="text-sm font-medium">Upload Models</p>
-                        </div>
-                        <div className="bg-white p-5 rounded shadow-sm flex flex-col items-center">
-                          <Eye className="h-10 w-10 text-teal-600 mb-3" />
-                          <p className="text-sm font-medium">AR Preview</p>
-                        </div>
-                        <div className="bg-white p-5 rounded shadow-sm flex flex-col items-center">
-                          <Users className="h-10 w-10 text-teal-600 mb-3" />
-                          <p className="text-sm font-medium">Connect Buyers</p>
-                        </div>
-                        <div className="bg-white p-5 rounded shadow-sm flex flex-col items-center">
-                          <Mountain className="h-10 w-10 text-teal-600 mb-3" />
-                          <p className="text-sm font-medium">Grow Sales</p>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 5. Visual Demo Section */}
-            <section id="demo" className="w-full py-16 md:py-24 bg-white">
-              <div className="container px-4 md:px-6">
-                <div className="flex flex-col items-center justify-center space-y-4 text-center mb-10">
-                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">See How It Works in Action</h2>
-                  <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl">
-                    Experience how easy it is to visualize your future home on your property
-                  </p>
-                </div>
-                <div className="mx-auto w-full max-w-4xl overflow-hidden rounded-lg border bg-white shadow-md">
-                  <div className="relative w-full h-[300px] sm:h-[400px] md:h-[500px]">
-                    <iframe
-                      src={`${demoWebARModel}?embed=true`}
-                      className="absolute top-0 left-0 w-full h-full border-0"
-                      title="3D Home Visualization Demo"
-                      allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      allowFullScreen
-                    ></iframe>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* New Social Proof / Trust Section */}
-            <section className="w-full py-16 md:py-24 bg-gray-50 relative">
-              <div
-                className="absolute inset-0 bg-cover bg-center opacity-15"
-                style={{ backgroundImage: 'url("/images/house-3.png")' }}
-              ></div>
-              <div className="container px-4 md:px-6 relative z-10">
-                <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">
-                    Trusted by Builders and Innovators
-                  </h2>
-                  <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl">
-                    Join the growing community of prefab builders and homeowners using HausMatch
-                  </p>
-                </div>
-
-                <div className="flex flex-wrap justify-center gap-8 mb-12">
-                  {/* Placeholder logos */}
-                  <div className="w-32 h-16 bg-white rounded-md shadow-sm flex items-center justify-center">
-                    <div className="text-gray-400 font-semibold">LOGO 1</div>
-                  </div>
-                  <div className="w-32 h-16 bg-white rounded-md shadow-sm flex items-center justify-center">
-                    <div className="text-gray-400 font-semibold">LOGO 2</div>
-                  </div>
-                  <div className="w-32 h-16 bg-white rounded-md shadow-sm flex items-center justify-center">
-                    <div className="text-gray-400 font-semibold">LOGO 3</div>
-                  </div>
-                  <div className="w-32 h-16 bg-white rounded-md shadow-sm flex items-center justify-center">
-                    <div className="text-gray-400 font-semibold">LOGO 4</div>
-                  </div>
-                  <div className="w-32 h-16 bg-white rounded-md shadow-sm flex items-center justify-center">
-                    <div className="text-gray-400 font-semibold">LOGO 5</div>
-                  </div>
-                </div>
-
-                <div className="max-w-3xl mx-auto bg-white p-8 rounded-lg shadow-md">
-                  <blockquote className="text-xl text-gray-600 italic text-center">
-                    "This tool helps our clients visualize and decide faster—it's a game changer."
-                  </blockquote>
-                  <div className="mt-4 text-center">
-                    <p className="font-semibold">— Prefab Builder, Latvia</p>
-                  </div>
-                </div>
-              </div>
-            </section>
-
-            {/* 6. FAQ Section (Collapsible) */}
-            <section id="about" className="w-full py-16 md:py-24 bg-white">
-              <div className="container px-4 md:px-6">
-                <div className="flex flex-col items-center justify-center space-y-4 text-center mb-12">
-                  <h2 className="text-3xl font-bold tracking-tighter md:text-4xl">About HausMatch</h2>
-                  <p className="mx-auto max-w-[700px] text-gray-500 md:text-xl">
-                    Everything you need to know about HausMatch
-                  </p>
-                </div>
-
-                <div className="max-w-3xl mx-auto">
-                  <div className="flex flex-col md:flex-row gap-8 items-center">
-                    <div className="md:w-1/3 flex flex-col items-center">
-                      <div className="w-48 h-48 rounded-full overflow-hidden border-4 border-white shadow-lg mb-4">
-                        <img
-                          src="/images/gatis-profile.png"
-                          alt="Gatis Zvejnieks"
-                          className="w-full h-full object-cover"
-                        />
-                      </div>
-                      <a
-                        href="https://www.linkedin.com/in/gatis-zvejnieks-79797917/"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="flex items-center gap-2 text-teal-600 hover:text-teal-800 transition-colors"
-                      >
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="16"
-                          height="16"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          className="lucide lucide-linkedin"
-                        >
-                          <path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0" />
-                          <rect width="4" height="12" x="2" y="9" />
-                          <circle cx="4" cy="4" r="2" />
-                        </svg>
-                        Gatis Zvejnieks
-                      </a>
-                      <p className="text-gray-500 mt-2">Co-founder &amp; CEO</p>
-                    </div>
-                    <div className="md:w-2/3">
-                      <p className="text-gray-700 leading-relaxed">
-                        HausMatch was founded to solve a personal frustration: the difficulty of finding and visualizing
-                        prefab homes. As someone who has built multiple homes, I know firsthand how challenging it can
-                        be to navigate the fragmented prefab market.
-                      </p>
-                      <p className="text-gray-700 leading-relaxed mt-4">
-                        Our mission is to empower individuals to discover and design their dream homes with ease. By
-                        leveraging AI and augmented reality, we're making the process more transparent, accessible, and
-                        enjoyable for everyone.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </section>
+              </section>
+            )}
           </>
         )}
       </main>
@@ -3347,9 +2338,9 @@ export default function LandingPage() {
                   id="builderMessage"
                   value={builderMessage}
                   onChange={(e) => setBuilderMessage(e.target.value)}
-                  className="w-full border rounded-md py-2 px-3 focus:outline-none focus:border-teal-500"
-                  rows={4}
-                ></textarea>
+                  className="w-full min-h-[100px] px-3 py-2 border border-gray-300 rounded-md"
+                  placeholder="Tell us about your homes..."
+                />
               </div>
               <Button type="submit" className="w-full bg-teal-600 hover:bg-teal-700" disabled={isBuilderSubmitting}>
                 {isBuilderSubmitting ? "Submitting..." : "Submit"}
@@ -3359,80 +2350,41 @@ export default function LandingPage() {
         </div>
       )}
 
-      {/* Builder Thank You Modal */}
+      {/* Thank You Modal for Builder Form */}
       {showBuilderThankYou && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Thank You!</h2>
-              <button onClick={closeBuilderThankYou} className="text-gray-500 hover:text-gray-700">
-                <X className="h-5 w-5" />
-              </button>
+            <div className="text-center">
+              <Check className="h-12 w-12 text-teal-600 mx-auto mb-4" />
+              <h2 className="text-xl font-semibold mb-2">Thank You!</h2>
+              <p className="text-gray-600 mb-4">
+                We've received your submission and will get back to you soon.
+              </p>
+              <Button onClick={closeBuilderThankYou} className="bg-teal-600 hover:bg-teal-700">
+                Close
+              </Button>
             </div>
-            <p className="text-gray-700">
-              Thank you for your interest in listing your homes with us. We'll be in touch soon!
-            </p>
-          </div>
-        </div>
-      )}
-
-      {/* Waitlist Modal */}
-      <Dialog open={showSubscribeModal} onOpenChange={setShowSubscribeModal}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle>Join Early Access</DialogTitle>
-            <DialogDescription>
-              Be the first to know when we launch. Get early access to exclusive features and updates.
-            </DialogDescription>
-          </DialogHeader>
-          <WaitlistForm
-            onSuccess={() => {
-              closeSubscribeModal()
-            }}
-          />
-        </DialogContent>
-      </Dialog>
-
-      {/* Thank You Modal */}
-      {showThankYouModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-          <div className="bg-white rounded-lg shadow-lg max-w-md w-full p-6">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold">Thank You!</h2>
-              <button onClick={closeThankYouModal} className="text-gray-500 hover:text-gray-700">
-                <X className="h-5 w-5" />
-              </button>
-            </div>
-            <p className="text-gray-700">{subscriptionMessage || "Thank you for subscribing!"}</p>
           </div>
         </div>
       )}
 
       {/* AR Preview Modal */}
       {showARPreview && selectedHouse && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75">
-          <div className="bg-white rounded-lg shadow-lg max-w-5xl w-full h-[90vh] p-6 relative">
-            <button
-              onClick={closeARPreview}
-              className="absolute top-2 right-2 text-gray-500 hover:text-gray-700 z-10"
-              aria-label="Close"
-            >
-              <X className="h-6 w-6" />
-            </button>
-            <h2 className="text-2xl font-bold mb-4">AR Preview - {selectedHouse.name}</h2>
-            <p className="text-gray-700 mb-4">
-              Point your phone's camera at a flat surface and tap to place the house model in your space.
-            </p>
-            <div className="w-full h-[calc(100%-120px)] overflow-hidden rounded-lg border bg-white shadow-md">
-              <div className="relative w-full h-full">
-                <iframe
-                  src={`${arPreviewWebARModel}?embed=true`}
-                  className="absolute top-0 left-0 w-full h-full border-0"
-                  title={`AR Preview - ${selectedHouse.name}`}
-                  allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; camera"
-                  allowFullScreen
-                ></iframe>
-              </div>
+        <div className="fixed inset-0 z-50 bg-white">
+          <div className="h-full flex flex-col">
+            <div className="p-4 border-b flex items-center justify-between bg-white">
+              <h2 className="font-semibold text-lg">AR Preview - {selectedHouse.name}</h2>
+              <Button variant="ghost" size="sm" onClick={closeARPreview}>
+                <X className="h-5 w-5" />
+              </Button>
+            </div>
+            <div className="flex-1 relative">
+              <iframe
+                src={`${arPreviewWebARModel}?embed=true`}
+                className="absolute top-0 left-0 w-full h-full border-0"
+                title={`AR Preview - ${selectedHouse.name}`}
+                allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; camera"
+              />
             </div>
           </div>
         </div>
@@ -3441,19 +2393,18 @@ export default function LandingPage() {
       {/* Image Modal */}
       {showImageModal && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90"
+          className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-75"
           onClick={closeImageModal}
         >
-          <div className="relative max-w-[90vw] max-h-[90vh]">
+          <div className="relative max-w-4xl max-h-[90vh] p-4">
             <button
               onClick={closeImageModal}
-              className="absolute top-4 right-4 text-white hover:text-gray-300 z-10"
-              aria-label="Close"
+              className="absolute top-2 right-2 text-white hover:text-gray-300 z-10"
             >
-              <X className="h-8 w-8" />
+              <X className="h-6 w-6" />
             </button>
             <img
-              src={selectedImage || "/placeholder.svg"}
+              src={selectedImage}
               alt={selectedImageAlt}
               className="max-w-full max-h-full object-contain"
               onClick={(e) => e.stopPropagation()}
@@ -3462,11 +2413,7 @@ export default function LandingPage() {
         </div>
       )}
 
-      <footer className="w-full py-6 bg-gray-100 border-t">
-        <div className="container px-4 md:px-6 text-center text-gray-500">
-          <p>&copy; {new Date().getFullYear()} HausMatch. All rights reserved.</p>
-        </div>
-      </footer>
+      <Footer />
     </div>
   )
 }

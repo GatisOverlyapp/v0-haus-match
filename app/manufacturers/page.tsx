@@ -1,5 +1,6 @@
 import Link from "next/link"
 import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import { Card } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { MapPin, Building2 } from "lucide-react"
@@ -81,6 +82,7 @@ export default async function ManufacturersPage() {
           ))}
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

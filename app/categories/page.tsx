@@ -3,6 +3,7 @@
 import Link from "next/link"
 import { useState } from "react"
 import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import { Card } from "@/components/ui/card"
 import { categories, getModelsByCategory } from "./data"
 
@@ -66,6 +67,8 @@ export default function CategoriesPage() {
           })}
         </div>
       </main>
+      <Footer />
     </div>
   )
 }
+

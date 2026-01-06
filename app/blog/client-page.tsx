@@ -5,6 +5,7 @@ import { Calendar, Clock, ArrowRight } from "lucide-react"
 import { blogPosts } from "./data"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
+import { Footer } from "@/components/footer"
 import { useState } from "react"
 
 export default function BlogClientPage() {
@@ -81,6 +82,7 @@ export default function BlogClientPage() {
           ))}
         </div>
       </main>
+      <Footer />
     </div>
   )
 }

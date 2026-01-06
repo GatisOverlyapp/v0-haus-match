@@ -2,7 +2,7 @@ import { prisma } from "@/lib/prisma"
 import type { HouseModel } from "@/app/manufacturers/data"
 
 // Transform Prisma model to app format
-function transformModel(model: any): HouseModel {
+function transformModel(model: any): HouseModel & { manufacturer?: { id: string; name: string; slug: string } } {
   return {
     id: model.id,
     name: model.name,
@@ -17,6 +17,11 @@ function transformModel(model: any): HouseModel {
     features: JSON.parse(model.features || "[]") as string[],
     images: JSON.parse(model.images || "[]") as string[],
     description: model.description,
+    manufacturer: model.manufacturer ? {
+      id: model.manufacturer.id,
+      name: model.manufacturer.name,
+      slug: model.manufacturer.slug,
+    } : undefined,
   }
 }
 
@@ -145,3 +150,4 @@ export async function getCategories(): Promise<string[]> {
     throw new Error("Failed to fetch categories")
   }
 }
+

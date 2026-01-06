@@ -2,15 +2,9 @@
 
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Home, Menu, X, ChevronDown, ChevronRight } from "lucide-react"
+import { Home, Menu, X } from "lucide-react"
 import Link from "next/link"
-import { categories } from "@/app/categories/data"
+import { usePathname } from "next/navigation"
 
 interface NavigationProps {
   openSubscribeModal?: () => void
@@ -19,18 +13,18 @@ interface NavigationProps {
 
 export function Navigation({ openSubscribeModal, isSticky = false }: NavigationProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
-  const [mobileCategoriesOpen, setMobileCategoriesOpen] = useState(false)
+  const pathname = usePathname()
+  const isHomePage = pathname === "/"
 
-  const scrollToSection = (sectionId: string) => {
-    if (typeof window === "undefined") return
-
-    const element = document.getElementById(sectionId)
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" })
-      setMobileMenuOpen(false)
+  const handleFindHouseClick = () => {
+    if (isHomePage) {
+      const element = document.getElementById("find-home")
+      if (element) {
+        element.scrollIntoView({ behavior: "smooth" })
+        setMobileMenuOpen(false)
+      }
     } else {
-      // If section not found on current page, navigate to home
-      window.location.href = `/#${sectionId}`
+      window.location.href = "/"
     }
   }
 
@@ -50,32 +44,11 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
         {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           <button
-            onClick={() => scrollToSection("find-home")}
+            onClick={handleFindHouseClick}
             className="text-gray-700 hover:text-teal-600 transition-colors"
           >
             Find a House
           </button>
-          <Link href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors">
-            Manufacturers
-          </Link>
-          <Link href="/models" className="text-gray-700 hover:text-teal-600 transition-colors">
-            Models
-          </Link>
-          <DropdownMenu>
-            <DropdownMenuTrigger className="text-gray-700 hover:text-teal-600 transition-colors flex items-center gap-1 outline-none">
-              Categories
-              <ChevronDown className="h-4 w-4" />
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="start" className="w-48">
-              {categories.map((category) => (
-                <DropdownMenuItem key={category.slug} asChild>
-                  <Link href={`/categories/${category.slug}`} className="cursor-pointer">
-                    {category.name}
-                  </Link>
-                </DropdownMenuItem>
-              ))}
-            </DropdownMenuContent>
-          </DropdownMenu>
           <Link href="/map" className="text-gray-700 hover:text-teal-600 transition-colors">
             Map
           </Link>
@@ -111,43 +84,11 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
         <div className="md:hidden bg-white shadow-md">
           <div className="container mx-auto px-4 py-4 flex flex-col space-y-4">
             <button
-              onClick={() => scrollToSection("find-home")}
+              onClick={handleFindHouseClick}
               className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left"
             >
               Find a House
             </button>
-            <Link href="/manufacturers" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
-              Manufacturers
-            </Link>
-            <Link href="/models" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
-              Models
-            </Link>
-            {/* Categories Expandable Menu */}
-            <div>
-              <button
-                onClick={() => setMobileCategoriesOpen(!mobileCategoriesOpen)}
-                className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left flex items-center justify-between w-full"
-              >
-                <span>Categories</span>
-                <ChevronRight
-                  className={`h-4 w-4 transition-transform ${mobileCategoriesOpen ? "rotate-90" : ""}`}
-                />
-              </button>
-              {mobileCategoriesOpen && (
-                <div className="pl-4 mt-2 space-y-2">
-                  {categories.map((category) => (
-                    <Link
-                      key={category.slug}
-                      href={`/categories/${category.slug}`}
-                      className="text-gray-600 hover:text-teal-600 transition-colors py-1.5 text-left block text-sm"
-                      onClick={() => setMobileMenuOpen(false)}
-                    >
-                      {category.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
             <Link href="/map" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
               Map
             </Link>

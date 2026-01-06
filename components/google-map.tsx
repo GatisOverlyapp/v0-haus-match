@@ -12,7 +12,9 @@ interface GoogleMapProps {
   filteredManufacturers?: Manufacturer[]
   height?: string
   selectedManufacturerId?: string
+  hoveredManufacturerId?: string
   onMarkerClick?: (manufacturerId: string) => void
+  onMarkerHover?: (manufacturerId: string | null) => void
   onResetFilters?: () => void
   zoom?: number
   center?: { lat: number; lng: number } | null
@@ -36,7 +38,18 @@ const getCoordinatesForLocation = (location: string): { lat: number; lng: number
 const DEFAULT_CENTER = { lat: 56.8796, lng: 24.6032 }
 const DEFAULT_ZOOM = 7
 
-export function GoogleMap({ manufacturers, filteredManufacturers, height = "500px", selectedManufacturerId, onMarkerClick, onResetFilters, zoom, center }: GoogleMapProps) {
+export function GoogleMap({ 
+  manufacturers, 
+  filteredManufacturers, 
+  height = "500px", 
+  selectedManufacturerId, 
+  hoveredManufacturerId,
+  onMarkerClick, 
+  onMarkerHover,
+  onResetFilters, 
+  zoom, 
+  center 
+}: GoogleMapProps) {
   const [selectedMarker, setSelectedMarker] = useState<string | null>(selectedManufacturerId || null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
@@ -59,10 +72,21 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
       .filter((m): m is Manufacturer & { lat: number; lng: number } => m !== null)
   }, [manufacturersToDisplay])
 
+  // Find selected manufacturer coordinates (must be defined before calculatedCenter)
+  const selectedManufacturer = useMemo(() => {
+    if (!selectedManufacturerId) return null
+    return manufacturersWithCoords.find((m) => m.id === selectedManufacturerId)
+  }, [selectedManufacturerId, manufacturersWithCoords])
+
   // Calculate map bounds to fit all visible markers (only if center prop is not provided)
   const calculatedCenter = useMemo(() => {
     if (center) {
       return center
+    }
+
+    // If a manufacturer is selected, center on it
+    if (selectedManufacturer) {
+      return { lat: selectedManufacturer.lat, lng: selectedManufacturer.lng }
     }
 
     if (manufacturersWithCoords.length === 0) {
@@ -78,7 +102,7 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
     const avgLng = manufacturersWithCoords.reduce((sum, m) => sum + m.lng, 0) / manufacturersWithCoords.length
 
     return { lat: avgLat, lng: avgLng }
-  }, [manufacturersWithCoords, center])
+  }, [manufacturersWithCoords, center, selectedManufacturer])
 
   // Calculate appropriate zoom level based on marker spread
   const calculatedZoom = useMemo(() => {
@@ -118,17 +142,13 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
     }
   }, [selectedManufacturerId])
 
-  // Find selected manufacturer coordinates
-  const selectedManufacturer = useMemo(() => {
-    if (!selectedManufacturerId) return null
-    return manufacturersWithCoords.find((m) => m.id === selectedManufacturerId)
-  }, [selectedManufacturerId, manufacturersWithCoords])
-
   if (!apiKey) {
     return (
       <div
         className="flex items-center justify-center bg-gray-100 rounded-lg"
         style={{ height }}
+        role="alert"
+        aria-live="polite"
       >
         <div className="text-center p-8">
           <p className="text-red-600 font-medium">Google Maps API key is missing</p>
@@ -145,6 +165,8 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
       <div
         className="flex items-center justify-center bg-gray-100 rounded-lg"
         style={{ height }}
+        role="alert"
+        aria-live="polite"
       >
         <div className="text-center p-8">
           <p className="text-red-600 font-medium">Error loading map</p>
@@ -164,6 +186,7 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
             variant="outline"
             onClick={onResetFilters}
             className="bg-white hover:bg-gray-50 shadow-md border-gray-300"
+            aria-label="Show all manufacturers"
           >
             Show All Manufacturers
           </Button>
@@ -178,38 +201,49 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
         <Map
           defaultCenter={DEFAULT_CENTER}
           defaultZoom={DEFAULT_ZOOM}
-          center={
-            selectedManufacturer
-              ? { lat: selectedManufacturer.lat, lng: selectedManufacturer.lng }
-              : calculatedCenter
-          }
+          center={calculatedCenter}
           zoom={selectedManufacturer ? (zoom || 12) : (zoom || calculatedZoom)}
           mapId="haus-match-map"
           className="w-full h-full"
           gestureHandling="greedy"
           disableDefaultUI={false}
+          zoomControl={true}
+          mapTypeControl={true}
+          fullscreenControl={true}
+          streetViewControl={false}
+          aria-label="Manufacturers map"
         >
-          {manufacturersWithCoords.map((manufacturer) => (
-            <AdvancedMarker
-              key={manufacturer.id}
-              position={{ lat: manufacturer.lat, lng: manufacturer.lng }}
-              onClick={() => {
-                setSelectedMarker(manufacturer.id)
-                onMarkerClick?.(manufacturer.id)
-              }}
-            >
-              {/* Custom teal marker icon */}
-              <div
-                className={`flex items-center justify-center w-10 h-10 rounded-full border-2 shadow-lg transition-all ${
-                  selectedMarker === manufacturer.id
-                    ? "bg-teal-600 border-teal-700 scale-110"
-                    : "bg-teal-500 border-teal-600 hover:scale-105"
-                }`}
+          {manufacturersWithCoords.map((manufacturer) => {
+            const isSelected = selectedMarker === manufacturer.id
+            const isHovered = hoveredManufacturerId === manufacturer.id
+            
+            return (
+              <AdvancedMarker
+                key={manufacturer.id}
+                position={{ lat: manufacturer.lat, lng: manufacturer.lng }}
+                onClick={() => {
+                  setSelectedMarker(manufacturer.id)
+                  onMarkerClick?.(manufacturer.id)
+                }}
+                onMouseEnter={() => onMarkerHover?.(manufacturer.id)}
+                onMouseLeave={() => onMarkerHover?.(null)}
               >
-                <Building2 className="w-5 h-5 text-white" />
-              </div>
-            </AdvancedMarker>
-          ))}
+                {/* Custom teal marker icon with pulse animation on hover */}
+                <div
+                  className={`flex items-center justify-center w-10 h-10 rounded-full border-2 shadow-lg transition-all ${
+                    isSelected
+                      ? "bg-teal-600 border-teal-700 scale-110"
+                      : isHovered
+                      ? "bg-teal-500 border-teal-600 scale-105 animate-pulse"
+                      : "bg-teal-500 border-teal-600 hover:scale-105"
+                  }`}
+                  aria-label={`${manufacturer.name} marker`}
+                >
+                  <Building2 className="w-5 h-5 text-white" />
+                </div>
+              </AdvancedMarker>
+            )
+          })}
 
           {/* Info Window */}
           {selectedMarker && (
@@ -229,6 +263,7 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
                       href={`/manufacturers/${manufacturer.slug}`}
                       className="inline-block px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white text-sm font-medium rounded transition-colors"
                       onClick={(e) => e.stopPropagation()}
+                      aria-label={`View profile for ${manufacturer.name}`}
                     >
                       View Profile
                     </Link>
@@ -242,9 +277,9 @@ export function GoogleMap({ manufacturers, filteredManufacturers, height = "500p
 
       {/* Loading overlay */}
       {isLoading && (
-        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10">
+        <div className="absolute inset-0 bg-white bg-opacity-75 flex items-center justify-center z-10" role="status" aria-live="polite">
           <div className="text-center">
-            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mb-2"></div>
+            <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-teal-600 mb-2" aria-hidden="true"></div>
             <p className="text-gray-600 text-sm">Loading map...</p>
           </div>
         </div>
