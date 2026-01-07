@@ -9,6 +9,7 @@ export interface ManufacturerFormData {
   name: string
   slug: string
   location: string
+  country: string
   lat: number
   lng: number
   description: string
@@ -28,8 +29,8 @@ export async function createManufacturer(data: ManufacturerFormData) {
 
   try {
     // Validate required fields
-    if (!data.name || !data.slug || !data.location || data.lat === undefined || data.lng === undefined) {
-      return { error: "Name, slug, location, latitude, and longitude are required" }
+    if (!data.name || !data.slug || !data.location || !data.country || data.lat === undefined || data.lng === undefined) {
+      return { error: "Name, slug, location, country, latitude, and longitude are required" }
     }
 
     // Check if slug already exists
@@ -46,6 +47,7 @@ export async function createManufacturer(data: ManufacturerFormData) {
         name: data.name,
         slug: data.slug,
         location: data.location,
+        country: data.country,
         lat: data.lat,
         lng: data.lng,
         description: data.description,
@@ -80,8 +82,8 @@ export async function updateManufacturer(id: string, data: ManufacturerFormData)
 
   try {
     // Validate required fields
-    if (!data.name || !data.slug || !data.location || data.lat === undefined || data.lng === undefined) {
-      return { error: "Name, slug, location, latitude, and longitude are required" }
+    if (!data.name || !data.slug || !data.location || !data.country || data.lat === undefined || data.lng === undefined) {
+      return { error: "Name, slug, location, country, latitude, and longitude are required" }
     }
 
     // Check if slug already exists for another manufacturer
@@ -102,6 +104,7 @@ export async function updateManufacturer(id: string, data: ManufacturerFormData)
         name: data.name,
         slug: data.slug,
         location: data.location,
+        country: data.country,
         lat: data.lat,
         lng: data.lng,
         description: data.description,
@@ -160,3 +163,4 @@ export async function deleteManufacturer(id: string) {
     return { error: "Failed to delete manufacturer" }
   }
 }
+

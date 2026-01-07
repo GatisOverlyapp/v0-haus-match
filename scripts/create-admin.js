@@ -5,7 +5,7 @@ require('dotenv').config()
 const prisma = new PrismaClient()
 
 async function main() {
-  const email = 'admin@hausmatch.com'
+  const email = 'admin@prefabcatalog.com'
   const password = 'admin123'
   const name = 'Administrator'
 

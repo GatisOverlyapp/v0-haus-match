@@ -10,7 +10,7 @@ if (!process.env.DATABASE_URL) {
 const prisma = new PrismaClient()
 
 async function main() {
-  const email = process.env.ADMIN_EMAIL || "admin@hausmatch.com"
+  const email = process.env.ADMIN_EMAIL || "admin@prefabcatalog.com"
   const password = process.env.ADMIN_PASSWORD || "admin123"
   const name = process.env.ADMIN_NAME || "Administrator"
 

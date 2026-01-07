@@ -1,12 +1,11 @@
 "use client"
 
 import Link from "next/link"
-import { ArrowLeft, Calendar, Clock, Share2, Facebook, Twitter, Linkedin, Copy, Check } from "lucide-react"
+import { ArrowLeft, Calendar, Clock, Share2, Facebook, Twitter, Linkedin, Copy, Check, ArrowUp } from "lucide-react"
 import { blogPosts } from "../data"
 import { Button } from "@/components/ui/button"
 import { Navigation } from "@/components/navigation"
 import { Footer } from "@/components/footer"
-import { notFound } from "next/navigation"
 import { useState, useEffect } from "react"
 import Script from "next/script"
 
@@ -17,10 +16,39 @@ interface BlogPostClientPageProps {
 export default function BlogPostClientPage({ slug }: BlogPostClientPageProps) {
   const [subscribeModalOpen, setSubscribeModalOpen] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [showBackToTop, setShowBackToTop] = useState(false)
   const post = blogPosts.find((p) => p.slug === slug)
 
+  // Handle scroll position for Back to Top button
+  useEffect(() => {
+    const handleScroll = () => {
+      setShowBackToTop(window.scrollY > 300)
+    }
+
+    window.addEventListener("scroll", handleScroll)
+    return () => window.removeEventListener("scroll", handleScroll)
+  }, [])
+
+  // Handle smooth scroll to top
+  const scrollToTop = () => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    })
+  }
+
   if (!post) {
-    notFound()
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Post Not Found</h1>
+          <p className="text-gray-600 mb-8">The blog post you're looking for doesn't exist.</p>
+          <Link href="/blog" className="text-teal-600 hover:text-teal-700">
+            ← Back to Blog
+          </Link>
+        </div>
+      </div>
+    )
   }
 
   // Get related posts (same category, excluding current)
@@ -141,7 +169,8 @@ export default function BlogPostClientPage({ slug }: BlogPostClientPageProps) {
         }
         continue
       } else {
-        if (inTable && tableRows.length > 0) {
+        // Close table if we were in one
+        if (inTable && tableHeaders.length > 0) {
           flushParagraph()
           elements.push(
             <div key={elements.length} className="my-8 overflow-x-auto">
@@ -158,20 +187,22 @@ export default function BlogPostClientPage({ slug }: BlogPostClientPageProps) {
                     ))}
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {tableRows.map((row, rowIdx) => (
-                    <tr key={rowIdx} className="hover:bg-gray-50">
-                      {row.map((cell, cellIdx) => (
-                        <td
-                          key={cellIdx}
-                          className="px-4 py-3 text-sm text-gray-700 border-b border-gray-200"
-                        >
-                          {cell.replace(/\*\*/g, "")}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
+                {tableRows.length > 0 && (
+                  <tbody className="bg-white divide-y divide-gray-200">
+                    {tableRows.map((row, rowIdx) => (
+                      <tr key={rowIdx} className="hover:bg-gray-50">
+                        {row.map((cell, cellIdx) => (
+                          <td
+                            key={cellIdx}
+                            className="px-4 py-3 text-sm text-gray-700 border-b border-gray-200"
+                          >
+                            {cell.replace(/\*\*/g, "")}
+                          </td>
+                        ))}
+                      </tr>
+                    ))}
+                  </tbody>
+                )}
               </table>
             </div>
           )
@@ -234,6 +265,26 @@ export default function BlogPostClientPage({ slug }: BlogPostClientPageProps) {
         continue
       }
 
+      // Handle CTA links like "[Browse Tiny House Manufacturers →]"
+      if (line.match(/^\[Browse.*→\]$/)) {
+        flushParagraph()
+        const ctaText = line.match(/\[(.*?)\s*→\]/)?.[1] || "Browse Manufacturers"
+        const href = ctaText.toLowerCase().includes("tiny house") ? "/?category=tiny-houses" 
+          : ctaText.toLowerCase().includes("california") ? "/manufacturers?country=US"
+          : ctaText.toLowerCase().includes("manufacturers") ? "/manufacturers"
+          : "/"
+        elements.push(
+          <div key={elements.length} className="my-8 p-6 bg-teal-50 rounded-lg border border-teal-200">
+            <Link href={href}>
+              <Button size="lg" className="w-full sm:w-auto bg-teal-600 hover:bg-teal-700 text-white">
+                {ctaText} →
+              </Button>
+            </Link>
+          </div>
+        )
+        continue
+      }
+
       // Regular paragraph text
       if (line) {
         currentParagraph.push(line)
@@ -243,18 +294,56 @@ export default function BlogPostClientPage({ slug }: BlogPostClientPageProps) {
     }
     flushParagraph()
 
+    // Close any open table at the end
+    if (inTable && tableHeaders.length > 0) {
+      elements.push(
+        <div key={elements.length} className="my-8 overflow-x-auto">
+          <table className="min-w-full border border-gray-300 rounded-lg">
+            <thead className="bg-gray-50">
+              <tr>
+                {tableHeaders.map((header, idx) => (
+                  <th
+                    key={idx}
+                    className="px-4 py-3 text-left text-sm font-semibold text-gray-900 border-b border-gray-300"
+                  >
+                    {header.replace(/\*\*/g, "")}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            {tableRows.length > 0 && (
+              <tbody className="bg-white divide-y divide-gray-200">
+                {tableRows.map((row, rowIdx) => (
+                  <tr key={rowIdx} className="hover:bg-gray-50">
+                    {row.map((cell, cellIdx) => (
+                      <td
+                        key={cellIdx}
+                        className="px-4 py-3 text-sm text-gray-700 border-b border-gray-200"
+                      >
+                        {cell.replace(/\*\*/g, "")}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            )}
+          </table>
+        </div>
+      )
+    }
+
     return elements
   }
 
   // Structured data for SEO
   const structuredData = {
     "@context": "https://schema.org",
-    "@type": "BlogPosting",
+    "@type": "Article",
     headline: post.title,
-    description: post.excerpt,
+    description: post.metaDescription || post.excerpt,
     image: post.image,
-    datePublished: post.date,
-    dateModified: post.date,
+    datePublished: new Date(post.date).toISOString(),
+    dateModified: new Date(post.date).toISOString(),
     author: {
       "@type": "Organization",
       name: post.author,
@@ -441,6 +530,17 @@ export default function BlogPostClientPage({ slug }: BlogPostClientPageProps) {
         </div>
       </article>
       <Footer />
+
+      {/* Back to Top Button */}
+      <button
+        onClick={scrollToTop}
+        aria-label="Back to top"
+        className={`fixed bottom-4 right-4 md:bottom-6 md:right-6 w-12 h-12 rounded-full bg-teal-600 hover:bg-teal-700 text-white shadow-lg flex items-center justify-center transition-all duration-300 z-50 ${
+          showBackToTop ? "opacity-100 translate-y-0" : "opacity-0 translate-y-2 pointer-events-none"
+        }`}
+      >
+        <ArrowUp className="w-5 h-5" />
+      </button>
     </div>
   )
 }

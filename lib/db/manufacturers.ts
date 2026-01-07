@@ -8,6 +8,7 @@ function transformManufacturer(manufacturer: any): Manufacturer {
     name: manufacturer.name,
     slug: manufacturer.slug,
     location: manufacturer.location,
+    country: manufacturer.country || "Latvia", // Fallback to Latvia if not set
     description: manufacturer.description,
     logo: manufacturer.logo || undefined,
   }
@@ -82,6 +83,7 @@ export async function getManufacturersWithCoords() {
         name: true,
         slug: true,
         location: true,
+        country: true,
         lat: true,
         lng: true,
         description: true,
@@ -98,3 +100,4 @@ export async function getManufacturersWithCoords() {
     throw new Error("Failed to fetch manufacturers")
   }
 }
+

@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Ruler, Bed, Bath, Heart, ChevronLeft, ChevronRight } from "lucide-react"
@@ -15,6 +16,8 @@ export interface ModelCardProps {
 }
 
 export function ModelCard({ model, className }: ModelCardProps) {
+  const router = useRouter()
+  
   // Find manufacturer by ID if not provided
   const manufacturer = model.manufacturer || manufacturers.find((m) => m.id === model.manufacturerId)
   const manufacturerSlug = manufacturer?.slug || ""
@@ -53,37 +56,51 @@ export function ModelCard({ model, className }: ModelCardProps) {
     // Future: Implement save functionality
   }
 
+  const handleManufacturerClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    if (manufacturerSlug) {
+      router.push(`/manufacturers/${manufacturerSlug}`)
+    }
+  }
+
   return (
-    <Card
-      className={`overflow-hidden border-0 shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer group ${className || ""}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <Link href={`/models/${model.slug}`} className="block">
+    <Link href={`/models/${model.slug}`} className="block">
+      <Card
+        className={`overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group ${className || ""} hover:scale-[1.02]`}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         {/* Image Container - 4:3 Aspect Ratio */}
         <div className="relative w-full aspect-[4/3] overflow-hidden bg-gray-100">
           <img
             src={images[currentImageIndex]}
-            alt={model.name}
-            className={`w-full h-full object-cover transition-transform duration-500 ${
+            alt={model.name || "Model image"}
+            className={`w-full h-full object-cover transition-transform duration-500 rounded-t-lg ${
               isHovered ? "scale-105" : "scale-100"
             }`}
+            onError={(e) => {
+              const target = e.target as HTMLImageElement
+              target.src = "/placeholder.svg"
+            }}
           />
 
-          {/* Category Badge - Top Left */}
-          <div className="absolute top-3 left-3 z-10">
-            <Badge className="bg-white/90 backdrop-blur-sm text-gray-900 hover:bg-white/90 font-medium shadow-sm">
-              {model.category}
-            </Badge>
-          </div>
+          {/* Category Badge - Top Left (Small, Subtle) */}
+          {model.category && (
+            <div className="absolute top-3 left-3 z-10">
+              <Badge className="bg-white/95 backdrop-blur-sm text-gray-800 hover:bg-white font-medium text-xs px-2 py-0.5 shadow-sm border border-gray-200/50">
+                {model.category}
+              </Badge>
+            </div>
+          )}
 
-          {/* Heart Icon - Top Right (Future Save Feature) */}
+          {/* Heart Icon - Top Right (Ghost Style) */}
           <button
             onClick={handleHeartClick}
-            className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors shadow-sm"
+            className="absolute top-3 right-3 z-10 p-2 rounded-full bg-white/90 backdrop-blur-sm hover:bg-white transition-colors shadow-sm hover:shadow-md"
             aria-label="Save model"
           >
-            <Heart className="h-5 w-5 text-gray-600 hover:text-red-500 transition-colors" />
+            <Heart className="h-4 w-4 text-gray-600 hover:text-red-500 transition-colors" />
           </button>
 
           {/* Image Carousel Controls - Show on hover if multiple images */}
@@ -97,7 +114,7 @@ export function ModelCard({ model, className }: ModelCardProps) {
                 }`}
                 aria-label="Previous image"
               >
-                <ChevronLeft className="h-5 w-5 text-gray-700" />
+                <ChevronLeft className="h-4 w-4 text-gray-700" />
               </button>
 
               {/* Next Button */}
@@ -108,7 +125,7 @@ export function ModelCard({ model, className }: ModelCardProps) {
                 }`}
                 aria-label="Next image"
               >
-                <ChevronRight className="h-5 w-5 text-gray-700" />
+                <ChevronRight className="h-4 w-4 text-gray-700" />
               </button>
 
               {/* Carousel Dots - Bottom Center */}
@@ -135,47 +152,46 @@ export function ModelCard({ model, className }: ModelCardProps) {
         </div>
 
         {/* Content Below Image */}
-        <div className="p-4">
-          {/* Model Name */}
-          <h3 className="text-lg font-semibold text-gray-900 mb-1 line-clamp-1">
+        <div className="p-4 flex flex-col gap-3">
+          {/* Model Name - Large, Bold */}
+          <h3 className="text-lg font-semibold text-gray-900 line-clamp-1">
             {model.name}
           </h3>
 
-          {/* Manufacturer Name - Clickable */}
+          {/* Manufacturer Name - Smaller, Gray, Clickable */}
           {manufacturer && (
-            <Link
-              href={`/manufacturers/${manufacturerSlug}`}
-              onClick={(e) => e.stopPropagation()}
-              className="text-sm text-gray-600 hover:text-teal-600 transition-colors mb-2 inline-block"
+            <button
+              onClick={handleManufacturerClick}
+              className="text-sm text-gray-600 hover:text-teal-600 transition-colors line-clamp-1 text-left"
             >
               {manufacturerName}
-            </Link>
+            </button>
           )}
 
-          {/* Specs Line - Compact with icons */}
-          <div className="flex items-center gap-3 text-sm text-gray-600 mb-2">
+          {/* Specs Row - Icons + Numbers */}
+          <div className="flex items-center gap-2 text-sm text-gray-600">
             <div className="flex items-center gap-1">
               <Ruler className="h-3.5 w-3.5" />
-              <span>{model.size_sqm} m²</span>
+              <span>{model.size_sqm || "N/A"} m²</span>
             </div>
             <span className="text-gray-400">·</span>
             <div className="flex items-center gap-1">
               <Bed className="h-3.5 w-3.5" />
-              <span>{model.bedrooms} bed{model.bedrooms !== 1 ? "s" : ""}</span>
+              <span>{model.bedrooms || 0} bed{model.bedrooms !== 1 ? "s" : ""}</span>
             </div>
             <span className="text-gray-400">·</span>
             <div className="flex items-center gap-1">
               <Bath className="h-3.5 w-3.5" />
-              <span>{model.bathrooms} bath{model.bathrooms !== 1 ? "s" : ""}</span>
+              <span>{model.bathrooms || 0} bath{model.bathrooms !== 1 ? "s" : ""}</span>
             </div>
           </div>
 
-          {/* Price Range - Bold, Teal Color */}
-          <div className="text-base font-semibold text-teal-600 mt-2">
-            {formatPrice(model.price_range)}
+          {/* Price - Bold, Teal Color, Prominent */}
+          <div className="text-lg font-bold text-teal-600 mt-1">
+            {model.price_range ? formatPrice(model.price_range) : "Price on request"}
           </div>
         </div>
-      </Link>
-    </Card>
+      </Card>
+    </Link>
   )
 }

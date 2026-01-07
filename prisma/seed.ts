@@ -46,6 +46,7 @@ async function main() {
         name: manufacturer.name,
         slug: manufacturer.slug,
         location: manufacturer.location,
+        country: manufacturer.country || "Latvia",
         lat: coords.lat,
         lng: coords.lng,
         description: manufacturer.description,
@@ -99,3 +100,4 @@ main()
   .finally(async () => {
     await prisma.$disconnect()
   })
+

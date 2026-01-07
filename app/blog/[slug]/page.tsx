@@ -1,4 +1,5 @@
 import type { Metadata } from "next"
+import Link from "next/link"
 import { blogPosts } from "../data"
 import BlogPostClientPage from "./client"
 
@@ -16,22 +17,24 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     }
   }
 
-  // Enhanced SEO metadata
-  const keywords = post.slug === "adu-vs-jadu-comparison-guide"
-    ? "ADU vs JADU, accessory dwelling unit, junior accessory dwelling unit, California ADU laws 2025, ADU requirements, JADU requirements, ADU cost, backyard cottage, granny flat"
-    : `${post.category}, prefab, modular homes`
+  // Enhanced SEO metadata - use metaDescription and keywords if available
+  const description = post.metaDescription || post.excerpt
+  const keywords = post.keywords || `${post.category}, prefab, modular homes${post.tags ? `, ${post.tags.join(", ")}` : ""}`
+
+  const publishedDate = new Date(post.date).toISOString()
+  const modifiedDate = new Date(post.date).toISOString()
 
   return {
     title: `${post.title} | Prefab Catalog Blog`,
-    description: post.excerpt,
+    description: description,
     keywords: keywords,
     authors: [{ name: post.author }],
     openGraph: {
       title: post.title,
-      description: post.excerpt,
+      description: description,
       type: "article",
-      publishedTime: post.date,
-      modifiedTime: post.date,
+      publishedTime: publishedDate,
+      modifiedTime: modifiedDate,
       authors: [post.author],
       images: [
         {
@@ -47,7 +50,7 @@ export async function generateMetadata({ params }: BlogPostPageProps): Promise<M
     twitter: {
       card: "summary_large_image",
       title: post.title,
-      description: post.excerpt,
+      description: description,
       images: [post.image],
     },
     alternates: {
@@ -68,5 +71,21 @@ export const dynamicParams = true
 
 export default async function BlogPostPage({ params }: BlogPostPageProps) {
   const { slug } = await params
+  const post = blogPosts.find((p) => p.slug === slug)
+  
+  if (!post) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <h1 className="text-4xl font-bold text-gray-900 mb-4">Post Not Found</h1>
+          <p className="text-gray-600 mb-8">The blog post you're looking for doesn't exist.</p>
+          <Link href="/blog" className="text-teal-600 hover:text-teal-700">
+            ← Back to Blog
+          </Link>
+        </div>
+      </div>
+    )
+  }
+  
   return <BlogPostClientPage slug={slug} />
 }
