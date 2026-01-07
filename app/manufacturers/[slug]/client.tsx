@@ -152,6 +152,7 @@ export function ManufacturerClient({ manufacturer, models }: ManufacturerClientP
           </DialogHeader>
           <ContactForm
             manufacturerId={manufacturer.id}
+            manufacturerName={manufacturer.name}
             onSuccess={() => {
               setContactModalOpen(false)
             }}

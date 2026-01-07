@@ -55,6 +55,9 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
           <Link href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors">
             Blog
           </Link>
+          <Link href="/contact" className="text-gray-700 hover:text-teal-600 transition-colors">
+            Contact
+          </Link>
         </nav>
 
         <div className="hidden md:block">
@@ -94,6 +97,9 @@ export function Navigation({ openSubscribeModal, isSticky = false }: NavigationP
             </Link>
             <Link href="/blog" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
               Blog
+            </Link>
+            <Link href="/contact" className="text-gray-700 hover:text-teal-600 transition-colors py-2 text-left">
+              Contact
             </Link>
             <Button
               className="bg-teal-600 hover:bg-teal-700 w-full"

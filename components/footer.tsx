@@ -108,12 +108,9 @@ export function Footer() {
                 </button>
               </li>
               <li>
-                <button
-                  onClick={() => scrollToSection("contact")}
-                  className="hover:text-teal-400 transition-colors text-left"
-                >
+                <Link href="/contact" className="hover:text-teal-400 transition-colors">
                   Contact
-                </button>
+                </Link>
               </li>
             </ul>
           </div>

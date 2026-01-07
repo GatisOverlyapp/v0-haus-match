@@ -6,10 +6,10 @@ import { Input } from "@/components/ui/input"
 import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Loader2, CheckCircle2, AlertCircle, X } from "lucide-react"
-import { submitContact, type ContactFormData } from "@/app/actions/contact"
 
 interface ContactFormProps {
   manufacturerId: string
+  manufacturerName: string
   modelId?: string
   modelName?: string
   className?: string
@@ -21,9 +21,11 @@ interface ContactFormProps {
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const MIN_MESSAGE_LENGTH = 50
+const MAX_MESSAGE_LENGTH = 1000
 
 export function ContactForm({
   manufacturerId,
+  manufacturerName,
   modelId,
   modelName,
   className,
@@ -48,7 +50,8 @@ export function ContactForm({
   // Calculate message character count
   const messageLength = message.trim().length
   const messageRemaining = MIN_MESSAGE_LENGTH - messageLength
-  const isMessageValid = messageLength >= MIN_MESSAGE_LENGTH
+  const messageOver = messageLength - MAX_MESSAGE_LENGTH
+  const isMessageValid = messageLength >= MIN_MESSAGE_LENGTH && messageLength <= MAX_MESSAGE_LENGTH
 
   // Validate email format
   const validateEmail = (email: string): boolean => {
@@ -75,6 +78,8 @@ export function ContactForm({
       newErrors.message = "Message is required"
     } else if (message.trim().length < MIN_MESSAGE_LENGTH) {
       newErrors.message = `Message must be at least ${MIN_MESSAGE_LENGTH} characters`
+    } else if (message.trim().length > MAX_MESSAGE_LENGTH) {
+      newErrors.message = `Message must be no more than ${MAX_MESSAGE_LENGTH} characters`
     }
 
     setErrors(newErrors)
@@ -96,19 +101,29 @@ export function ContactForm({
     setIsSubmitting(true)
 
     try {
-      const result = await submitContact({
-        manufacturerId,
-        modelId,
-        name: name.trim(),
-        email: email.trim(),
-        phone: phone.trim(),
-        message: message.trim(),
+      const formData = new FormData()
+      formData.append("form_type", "manufacturer_contact")
+      formData.append("manufacturer", manufacturerName)
+      if (manufacturerId) formData.append("manufacturer_id", manufacturerId)
+      if (modelId) formData.append("model_id", modelId)
+      if (modelName) formData.append("model_name", modelName)
+      formData.append("name", name.trim())
+      formData.append("email", email.trim())
+      if (phone.trim()) formData.append("phone", phone.trim())
+      formData.append("message", message.trim())
+
+      const response = await fetch("https://formspree.io/f/mbdlnkey", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
       })
 
-      if (result.success) {
+      if (response.ok) {
         setStatus({
           type: "success",
-          message: result.message,
+          message: "Thank you for your message! We'll get back to you soon.",
         })
         // Clear form
         setName("")
@@ -118,16 +133,11 @@ export function ContactForm({
         setErrors({})
         // Call success callback if provided
         onSuccess?.()
-        // Auto-close after 3 seconds if onClose is provided
-        if (onClose) {
-          setTimeout(() => {
-            onClose()
-          }, 3000)
-        }
       } else {
+        const data = await response.json()
         setStatus({
           type: "error",
-          message: result.message,
+          message: data.error || "Something went wrong. Please try again.",
         })
       }
     } catch (error) {
@@ -195,7 +205,13 @@ export function ContactForm({
           )}
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-5">
+        <form onSubmit={handleSubmit} action="https://formspree.io/f/mbdlnkey" method="POST" className="space-y-5">
+          {/* Hidden fields */}
+          <input type="hidden" name="form_type" value="manufacturer_contact" />
+          <input type="hidden" name="manufacturer" value={manufacturerName} />
+          {manufacturerId && <input type="hidden" name="manufacturer_id" value={manufacturerId} />}
+          {modelId && <input type="hidden" name="model_id" value={modelId} />}
+          {modelName && <input type="hidden" name="model_name" value={modelName} />}
           {/* Name Field */}
           <div className="space-y-2">
             <Label htmlFor="contact-name" className="text-sm font-medium text-gray-700">
@@ -203,6 +219,7 @@ export function ContactForm({
             </Label>
             <Input
               id="contact-name"
+              name="name"
               type="text"
               value={name}
               onChange={(e) => handleNameChange(e.target.value)}
@@ -226,6 +243,7 @@ export function ContactForm({
             </Label>
             <Input
               id="contact-email"
+              name="email"
               type="email"
               value={email}
               onChange={(e) => handleEmailChange(e.target.value)}
@@ -249,6 +267,7 @@ export function ContactForm({
             </Label>
             <Input
               id="contact-phone"
+              name="phone"
               type="tel"
               value={phone}
               onChange={(e) => setPhone(e.target.value)}
@@ -264,11 +283,14 @@ export function ContactForm({
             </Label>
             <Textarea
               id="contact-message"
+              name="message"
               value={message}
               onChange={(e) => handleMessageChange(e.target.value)}
-              placeholder="Tell us about your project, questions, or requirements (minimum 50 characters)"
+              placeholder="Tell us about your project, questions, or requirements (50-1000 characters)"
               disabled={isSubmitting}
               rows={6}
+              minLength={MIN_MESSAGE_LENGTH}
+              maxLength={MAX_MESSAGE_LENGTH}
               className={`resize-none ${errors.message ? "border-red-500 focus:border-red-500" : ""}`}
               required
             />
@@ -285,14 +307,18 @@ export function ContactForm({
                 className={`text-sm ${
                   isMessageValid
                     ? "text-gray-500"
-                    : messageLength > 0
-                      ? "text-amber-600"
-                      : "text-gray-400"
+                    : messageLength > MAX_MESSAGE_LENGTH
+                      ? "text-red-600"
+                      : messageLength > 0
+                        ? "text-amber-600"
+                        : "text-gray-400"
                 }`}
               >
                 {messageLength < MIN_MESSAGE_LENGTH
                   ? `${messageRemaining} characters remaining`
-                  : `${messageLength} characters`}
+                  : messageLength > MAX_MESSAGE_LENGTH
+                    ? `${messageOver} characters over limit`
+                    : `${messageLength}/${MAX_MESSAGE_LENGTH} characters`}
               </p>
             </div>
           </div>

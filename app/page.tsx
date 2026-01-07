@@ -38,7 +38,6 @@ import {
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
 import { Label } from "@/components/ui/label"
-import { subscribeToEarlyAccess } from "./actions"
 import { getWebARModelForHouse } from "@/lib/webar-models" // Import the new function
 import { HouseCard } from "@/components/house-card"
 import Link from "next/link"
@@ -2078,39 +2077,10 @@ export default function LandingPage() {
     setHasMoreFilteredHouses(currentCount + 6 < filteredHouses.length)
   }
 
-  // Handle subscription form submission
+  // Handle subscription form submission (not used - WaitlistForm handles its own submission)
   const handleSubscribe = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
-
-    if (isSubmitting) return
-
-    setIsSubmitting(true)
-
-    try {
-      const formData = new FormData()
-      formData.append("name", formName)
-      formData.append("email", formEmail)
-
-      const result = await subscribeToEarlyAccess(formData)
-
-      if (result.success) {
-        setSubscriptionMessage(result.message)
-        setIsSubscribed(true)
-        setShowSubscribeModal(false)
-        setShowThankYouModal(true)
-        // Clear form
-        setFormName("")
-        setFormEmail("")
-      } else {
-        setSubscriptionMessage(result.message)
-        setShowThankYouModal(true)
-      }
-    } catch (error) {
-      setSubscriptionMessage("An error occurred. Please try again later.")
-      setShowThankYouModal(true)
-    } finally {
-      setIsSubmitting(false)
-    }
+    // This function is kept for compatibility but WaitlistForm handles submission directly
   }
 
   const handleFreeTextSearch = (query: string) => {
@@ -2722,6 +2692,26 @@ export default function LandingPage() {
           </div>
         </div>
       )}
+
+      {/* Subscribe Modal */}
+      <Dialog open={showSubscribeModal} onOpenChange={setShowSubscribeModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Join Early Access</DialogTitle>
+            <DialogDescription>
+              Be the first to know when we launch. Join our waitlist for exclusive early access.
+            </DialogDescription>
+          </DialogHeader>
+          <WaitlistForm
+            onSuccess={() => {
+              setTimeout(() => {
+                setShowSubscribeModal(false)
+              }, 2000)
+            }}
+            onClose={() => setShowSubscribeModal(false)}
+          />
+        </DialogContent>
+      </Dialog>
 
       <Footer />
     </div>

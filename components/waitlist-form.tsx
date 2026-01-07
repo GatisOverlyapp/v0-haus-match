@@ -5,17 +5,17 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Loader2, CheckCircle2, AlertCircle } from "lucide-react"
-import { submitToWaitlist, type WaitlistFormData } from "@/app/actions/waitlist"
 
 interface WaitlistFormProps {
   className?: string
   onSuccess?: () => void
+  onClose?: () => void
 }
 
 // Email validation regex
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
-export function WaitlistForm({ className, onSuccess }: WaitlistFormProps) {
+export function WaitlistForm({ className, onSuccess, onClose }: WaitlistFormProps) {
   const [name, setName] = useState("")
   const [email, setEmail] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -68,15 +68,23 @@ export function WaitlistForm({ className, onSuccess }: WaitlistFormProps) {
     setIsSubmitting(true)
 
     try {
-      const result = await submitToWaitlist({
-        name: name.trim(),
-        email: email.trim(),
+      const formData = new FormData()
+      formData.append("form_type", "waitlist")
+      formData.append("name", name.trim())
+      formData.append("email", email.trim())
+
+      const response = await fetch("https://formspree.io/f/mbdlnkey", {
+        method: "POST",
+        body: formData,
+        headers: {
+          Accept: "application/json",
+        },
       })
 
-      if (result.success) {
+      if (response.ok) {
         setStatus({
           type: "success",
-          message: result.message,
+          message: "Thank you for joining the waitlist! We'll notify you when we launch.",
         })
         // Clear form
         setName("")
@@ -84,10 +92,17 @@ export function WaitlistForm({ className, onSuccess }: WaitlistFormProps) {
         setErrors({})
         // Call success callback if provided
         onSuccess?.()
+        // Close modal after 2 seconds if onClose is provided
+        if (onClose) {
+          setTimeout(() => {
+            onClose()
+          }, 2000)
+        }
       } else {
+        const data = await response.json()
         setStatus({
           type: "error",
-          message: result.message,
+          message: data.error || "Something went wrong. Please try again.",
         })
       }
     } catch (error) {

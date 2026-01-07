@@ -5,7 +5,16 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Card } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Ruler, Bed, Bath, Heart, ChevronLeft, ChevronRight } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Ruler, Bed, Bath, Heart, ChevronLeft, ChevronRight, Mail } from "lucide-react"
+import { ContactForm } from "@/components/contact-form"
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+} from "@/components/ui/dialog"
 import type { HouseModel } from "@/app/manufacturers/data"
 import { manufacturers } from "@/app/manufacturers/data"
 
@@ -22,11 +31,13 @@ export function ModelCard({ model, className }: ModelCardProps) {
   const manufacturer = model.manufacturer || manufacturers.find((m) => m.id === model.manufacturerId)
   const manufacturerSlug = manufacturer?.slug || ""
   const manufacturerName = manufacturer?.name || "Unknown Manufacturer"
+  const manufacturerId = manufacturer?.id || model.manufacturerId
 
   // Get images or placeholder
   const images = model.images && model.images.length > 0 ? model.images : ["/placeholder.svg"]
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
   const [isHovered, setIsHovered] = useState(false)
+  const [contactModalOpen, setContactModalOpen] = useState(false)
 
   // Extract price from price range (e.g., "€45,000 - €55,000" -> "From €45,000")
   const formatPrice = (priceRange: string): string => {
@@ -64,7 +75,14 @@ export function ModelCard({ model, className }: ModelCardProps) {
     }
   }
 
+  const handleContactClick = (e: React.MouseEvent) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setContactModalOpen(true)
+  }
+
   return (
+    <>
     <Link href={`/models/${model.slug}`} className="block">
       <Card
         className={`overflow-hidden border border-gray-200 shadow-sm hover:shadow-md transition-all duration-300 cursor-pointer group ${className || ""} hover:scale-[1.02]`}
@@ -190,8 +208,45 @@ export function ModelCard({ model, className }: ModelCardProps) {
           <div className="text-lg font-bold text-teal-600 mt-1">
             {model.price_range ? formatPrice(model.price_range) : "Price on request"}
           </div>
+
+          {/* Contact Manufacturer Button */}
+          {manufacturer && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <Button
+                onClick={handleContactClick}
+                variant="outline"
+                className="w-full text-sm border-teal-600 text-teal-600 hover:bg-teal-50"
+              >
+                <Mail className="h-4 w-4 mr-2" />
+                Contact Manufacturer
+              </Button>
+            </div>
+          )}
         </div>
       </Card>
     </Link>
+
+    {/* Contact Modal */}
+    <Dialog open={contactModalOpen} onOpenChange={setContactModalOpen}>
+      <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Contact {manufacturerName}</DialogTitle>
+          <DialogDescription>
+            Send a message to {manufacturerName} about {model.name}.
+          </DialogDescription>
+        </DialogHeader>
+        <ContactForm
+          manufacturerId={manufacturerId}
+          manufacturerName={manufacturerName}
+          modelId={model.id}
+          modelName={model.name}
+          onSuccess={() => {
+            setContactModalOpen(false)
+          }}
+          onClose={() => setContactModalOpen(false)}
+        />
+      </DialogContent>
+    </Dialog>
+    </>
   )
 }
