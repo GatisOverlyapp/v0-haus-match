@@ -1,11 +1,8 @@
 import { PrismaClient } from "../lib/generated/prisma/client"
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
 import { manufacturers, houseModels } from "../app/manufacturers/data"
 import "dotenv/config"
 
-const dbUrl = process.env.DATABASE_URL?.replace("file:", "") || "./prisma/dev.db"
-const adapter = new PrismaBetterSqlite3({ url: dbUrl })
-const prisma = new PrismaClient({ adapter })
+const prisma = new PrismaClient()
 
 // Helper function to get coordinates for Latvian cities
 const getCoordinatesForLocation = (location: string): { lat: number; lng: number } => {
